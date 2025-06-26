@@ -1,9 +1,8 @@
 [package]
 name         = "generic-container"
 authors      = ["Finley Huggins"]
-description  = "Abstract over containers that hold a T, such as Box<T>, Arc<Mutex<T>>, a T itself, and more"
-# TODO: make a crate-specific README
-readme       = "../../README.md"
+description  = 'Abstract over "containers" that hold a T, such as a T itself, Box<T>, or Arc<Mutex<T>>'
+readme       = "README.md"
 keywords     = ["abstraction", "generic", "box", "rc", "arc"]
 categories   = ["memory-management", "concurrency", "rust-patterns"]
 # TODO: explicitly define `include`

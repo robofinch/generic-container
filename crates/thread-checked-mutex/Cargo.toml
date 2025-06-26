@@ -1,0 +1,20 @@
+[package]
+name         = "thread-checked-mutex"
+authors      = ["Finley Huggins"]
+description  = "Check if the current thread is trying to lock a mutex it already holds"
+# TODO: make a crate-specific README
+readme       = "../../README.md"
+keywords     = ["mutex", "checked", "deadlock"]
+categories   = ["concurrency", "memory-management"]
+# TODO: explicitly define `include`
+version      .workspace = true
+edition      .workspace = true
+rust-version .workspace = true
+repository   .workspace = true
+license      .workspace = true
+
+[lints]
+workspace = true
+
+
+[dependencies]

@@ -3,6 +3,19 @@
 list:
     just --list
 
+add-targets:
+    rustup default stable
+    rustup target add aarch64-apple-darwin
+    rustup target add x86_64-unknown-linux-gnu
+    rustup target add x86_64-pc-windows-msvc
+    rustup target add wasm32-unknown-unknown
+    rustup default nightly
+    rustup target add aarch64-apple-darwin
+    rustup target add x86_64-unknown-linux-gnu
+    rustup target add x86_64-pc-windows-msvc
+    rustup target add wasm32-unknown-unknown
+    rustup default stable
+
 # ================================================================
 #   Example `.vscode/settings.json` for `rust-analyzer`:
 # ================================================================

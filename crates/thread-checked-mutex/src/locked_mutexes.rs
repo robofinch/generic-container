@@ -58,9 +58,7 @@ where
         // to get another pointer to `locked_mutexes`’ pointee, the
         // reference remains unique in the remainder of this
         // function. Thus, aliasing is satisfied.
-        let locked_mutexes: &mut Inner = unsafe {
-            &mut *locked_mutexes
-        };
+        let locked_mutexes: &mut Inner = unsafe { &mut *locked_mutexes };
 
         f(locked_mutexes)
     })
@@ -73,11 +71,7 @@ pub(crate) fn register_locked(mutex_id: MutexID) -> bool {
     //   `locked_mutexes_inner` module does not import anything
     //   from this module.
     // - The return value, `bool`, does not reference anything.
-    unsafe {
-        access_locked_mutexes(|lm_inner| {
-            lm_inner.register_locked(mutex_id)
-        })
-    }
+    unsafe { access_locked_mutexes(|lm_inner| lm_inner.register_locked(mutex_id)) }
 }
 
 #[must_use]
@@ -87,11 +81,7 @@ pub(crate) fn register_unlocked(mutex_id: MutexID) -> bool {
     //   `locked_mutexes_inner` module does not import anything
     //   from this module.
     // - The return value, `bool`, does not reference anything.
-    unsafe {
-        access_locked_mutexes(|lm_inner| {
-            lm_inner.register_unlocked(mutex_id)
-        })
-    }
+    unsafe { access_locked_mutexes(|lm_inner| lm_inner.register_unlocked(mutex_id)) }
 }
 
 #[inline]
@@ -102,10 +92,5 @@ pub(crate) fn locked_by_current_thread(mutex_id: MutexID) -> bool {
     //   `locked_mutexes_inner` module does not import anything
     //   from this module.
     // - The return value, `bool`, does not reference anything.
-    unsafe {
-        access_locked_mutexes(|lm_inner| {
-            lm_inner.locked_by_current_thread(mutex_id)
-        })
-    }
+    unsafe { access_locked_mutexes(|lm_inner| lm_inner.locked_by_current_thread(mutex_id)) }
 }
-

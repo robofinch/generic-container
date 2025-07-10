@@ -49,8 +49,8 @@ impl<const INLINE: usize> LockedMutexesInner<INLINE> {
         self.id_set.insert(mutex_id)
     }
 
-    pub(crate) fn register_unlocked(&mut self, mutex_id: MutexID) -> bool {        
-       for id in &mut self.inline_ids {
+    pub(crate) fn register_unlocked(&mut self, mutex_id: MutexID) -> bool {
+        for id in &mut self.inline_ids {
             if *id == Some(mutex_id) {
                 *id = None;
                 return true;
@@ -73,4 +73,3 @@ impl<const INLINE: usize> Default for LockedMutexesInner<INLINE> {
         Self::new()
     }
 }
-

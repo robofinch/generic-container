@@ -12,7 +12,7 @@ use std::sync::Mutex;
 
 pub(crate) type MutexID = NonZeroU64;
 
-/// 2^63, which is basically half of `u64::MAX`.
+/// 2^63, which is basically half of [`u64::MAX`].
 const MAX_MUTEXES_PER_PROCESS: u64 = 1 << 63;
 
 
@@ -28,10 +28,7 @@ pub(crate) fn next_id() -> MutexID {
     // We unwrap below, because a panic would only occur if
     // `counter + 1`, a sum of `u64`s, is zero. This only occurs if
     // `counter` is `u64::MAX`, which would trigger a panic above.
-    #[expect(
-        clippy::unwrap_used,
-        reason = "panics cannot occur here, only above",
-    )]
+    #[expect(clippy::unwrap_used, reason = "panics cannot occur here, only above")]
     NonZeroU64::new(counter + 1).unwrap()
 }
 
@@ -58,4 +55,3 @@ fn next_counter() -> u64 {
     *counter_guard = counter.wrapping_add(1);
     counter
 }
-

@@ -1,6 +1,8 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::ops::{Deref, DerefMut};
-use std::sync::{Mutex, MutexGuard, PoisonError, TryLockError as StdTryLockError};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    ops::{Deref, DerefMut},
+    sync::{Mutex, MutexGuard, PoisonError, TryLockError as StdTryLockError},
+};
 
 use crate::{locked_mutexes, mutex_id};
 use crate::mutex_id::MutexID;
@@ -67,8 +69,7 @@ impl<T: ?Sized> ThreadCheckedMutex<T> {
                 #[expect(
                     clippy::let_underscore_must_use,
                     clippy::redundant_type_annotations,
-                    reason = "We already checked that the current \
-                              thread hasn't locked the mutex, \
+                    reason = "We already checked that the current thread hasn't locked the mutex, \
                               so this always returns true.",
                 )]
                 let _: bool = locked_mutexes::register_locked(self.mutex_id);
@@ -78,17 +79,14 @@ impl<T: ?Sized> ThreadCheckedMutex<T> {
                 #[expect(
                     clippy::let_underscore_must_use,
                     clippy::redundant_type_annotations,
-                    reason = "We already checked that the current \
-                              thread hasn't locked the mutex, \
-                              so this always returns true.",
+                    reason = "We already checked that the current thread hasn't locked the mutex, \
+                              so this always returns true."
                 )]
                 let _: bool = locked_mutexes::register_locked(self.mutex_id);
                 let poison = self.poisoned_guard(poison);
                 Err(TryLockError::Poisoned(poison))
             }
-            Err(StdTryLockError::WouldBlock) => {
-                Err(TryLockError::WouldBlock)
-            }
+            Err(StdTryLockError::WouldBlock) => Err(TryLockError::WouldBlock),
         }
     }
 
@@ -114,16 +112,12 @@ impl<T: ?Sized> ThreadCheckedMutex<T> {
     where
         T: Sized,
     {
-        self.mutex
-            .into_inner()
-            .map_err(Into::into)
+        self.mutex.into_inner().map_err(Into::into)
     }
 
     #[inline]
     pub fn get_mut(&mut self) -> AccessResult<&mut T> {
-        self.mutex
-            .get_mut()
-            .map_err(Into::into)
+        self.mutex.get_mut().map_err(Into::into)
     }
 }
 
@@ -146,7 +140,12 @@ impl<T: ?Sized> Drop for ThreadCheckedMutexGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let was_locked = locked_mutexes::register_unlocked(self.mutex_id);
-        debug_assert!(was_locked, "a ThreadCheckedMutexGuard was dropped in a thread which it was not locked in");
+
+        // This assertion should not fail unless someone used unsound unsafe code.
+        debug_assert!(
+            was_locked,
+            "a ThreadCheckedMutexGuard was dropped in a thread which it was not locked in",
+        );
     }
 }
 
@@ -167,9 +166,8 @@ impl<T: ?Sized> DerefMut for ThreadCheckedMutexGuard<'_, T> {
 }
 
 impl<T: ?Sized + Display> Display for ThreadCheckedMutexGuard<'_, T> {
-   #[inline] 
-   fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&*self.guard, f)
-   }
+    }
 }
-

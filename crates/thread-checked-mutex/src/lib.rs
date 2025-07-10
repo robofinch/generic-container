@@ -1,16 +1,16 @@
 mod mutex;
-mod mutex_id;
+mod error;
+
 mod locked_mutexes;
 mod locked_mutexes_inner;
-mod error;
+mod mutex_id;
+
 
 pub use self::{
     error::{
-        AccessError, AccessResult, HandlePoisonResult,
-        LockError, LockResult, PoisonlessAccessResult,
-        PoisonlessLockResult, PoisonlessTryLockResult,
+        AccessError, AccessResult, HandlePoisonResult, LockError, LockResult,
+        PoisonlessAccessResult, PoisonlessLockResult, PoisonlessTryLockResult,
         TryLockError, TryLockResult,
     },
     mutex::{ThreadCheckedMutex, ThreadCheckedMutexGuard},
 };
-

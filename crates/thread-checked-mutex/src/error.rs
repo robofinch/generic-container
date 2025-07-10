@@ -51,7 +51,7 @@ impl<T> LockError<T> {
     #[must_use]
     pub fn panic_if_poison(self) -> LockError<Infallible> {
         match self {
-             #[expect(
+            #[expect(
                 clippy::panic,
                 reason = "library users will frequently want to panic on poison",
             )]
@@ -71,11 +71,7 @@ impl<T> From<PoisonError<T>> for LockError<T> {
 impl<T> Debug for LockError<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Poisoned(poison) => {
-                f.debug_tuple("Poisoned")
-                    .field(&poison)
-                    .finish()
-            }
+            Self::Poisoned(poison)      => f.debug_tuple("Poisoned").field(&poison).finish(),
             Self::LockedByCurrentThread => f.write_str("LockedByCurrentThread"),
         }
     }
@@ -142,7 +138,7 @@ impl<T> TryLockError<T> {
     #[inline]
     #[must_use]
     pub fn panic_if_poison(self) -> TryLockError<Infallible> {
-        match self {     
+        match self {
             #[expect(
                 clippy::panic,
                 reason = "library users will frequently want to panic on poison",
@@ -164,11 +160,7 @@ impl<T> From<PoisonError<T>> for TryLockError<T> {
 impl<T> Debug for TryLockError<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Poisoned(poison) => {
-                f.debug_tuple("Poisoned")
-                    .field(&poison)
-                    .finish()
-            }
+            Self::Poisoned(poison)      => f.debug_tuple("Poisoned").field(&poison).finish(),
             Self::LockedByCurrentThread => f.write_str("LockedByCurrentThread"),
             Self::WouldBlock            => f.write_str("WouldBlock"),
         }
@@ -262,4 +254,3 @@ impl<T> Display for AccessError<T> {
 }
 
 impl<T> Error for AccessError<T> {}
-

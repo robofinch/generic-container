@@ -4,17 +4,14 @@ list:
     just --list
 
 add-targets:
-    rustup default stable
-    rustup target add aarch64-apple-darwin
-    rustup target add x86_64-unknown-linux-gnu
-    rustup target add x86_64-pc-windows-msvc
-    rustup target add wasm32-unknown-unknown
-    rustup default nightly
-    rustup target add aarch64-apple-darwin
-    rustup target add x86_64-unknown-linux-gnu
-    rustup target add x86_64-pc-windows-msvc
-    rustup target add wasm32-unknown-unknown
-    rustup default stable
+    rustup target add --toolchain stable aarch64-apple-darwin
+    rustup target add --toolchain stable x86_64-unknown-linux-gnu
+    rustup target add --toolchain stable x86_64-pc-windows-msvc
+    rustup target add --toolchain stable wasm32-unknown-unknown
+    rustup target add --toolchain nightly aarch64-apple-darwin
+    rustup target add --toolchain nightly x86_64-unknown-linux-gnu
+    rustup target add --toolchain nightly x86_64-pc-windows-msvc
+    rustup target add --toolchain nightly wasm32-unknown-unknown
 
 # ================================================================
 #   Example `.vscode/settings.json` for `rust-analyzer`:
@@ -35,14 +32,14 @@ add-targets:
 # Run ripgrep, but don't return an error if nothing matched.
 [group("ripgrep")]
 rg-maybe-no-match *args:
-    rg {{ args }} || [ $$? -eq 1 ]
+    @rg {{ args }} || [ $? -eq 1 ]
 
 # Find lines not ending in a comma, where the next line starts with `]`, `)`, or `>`.
 [group("ripgrep")]
 find-possible-missing-commas: \
-    (rg-maybe-no-match '-U' '[^,]\n[ ]*\]') \
-    (rg-maybe-no-match '-U' '[^,]\n[ ]*\)') \
-    (rg-maybe-no-match '-U' '[^,]\n[ ]*\>')
+    (rg-maybe-no-match ''' -U '[^,]\n[ ]*\]' ''') \
+    (rg-maybe-no-match ''' -U '[^,]\n[ ]*\)' ''') \
+    (rg-maybe-no-match ''' -U '[^,]\n[ ]*>' ''')
 
 # Find any `#[allow(...)]` attribute, or to be precise, find `[allow(`.
 [group("ripgrep")]

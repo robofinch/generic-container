@@ -68,3 +68,39 @@ fn next_counter() -> u64 {
     *counter_guard = counter.wrapping_add(1);
     counter
 }
+
+
+#[cfg(test)]
+pub(crate) use self::tests::run_this_before_each_test_that_creates_a_mutex_id;
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Once;
+    use super::*;
+
+
+    fn first_id() -> MutexID {
+        #[expect(clippy::unwrap_used, reason = "1 is nonzero")]
+        MutexID(NonZeroU64::new(1).unwrap())
+    }
+
+    pub(crate) fn run_this_before_each_test_that_creates_a_mutex_id() {
+        // Add `inline(never)` just in case; it could make backtraces better if it were
+        // to fail.
+        #[inline(never)]
+        fn test_first_mutex_id() {
+            assert_eq!(next_id(), first_id());
+        }
+
+        static ONCE: Once = Once::new();
+
+        ONCE.call_once(test_first_mutex_id);
+    }
+
+    #[test]
+    fn check_start_and_uniqueness() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        assert_ne!(next_id(), first_id());
+    }
+}

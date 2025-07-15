@@ -436,108 +436,123 @@ impl Eq for AccessError<Infallible> {}
 
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
     fn lock_ignore_poison() {
         // Ok
-        let res: LockResult<()> = Ok(());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_o: LockResult<()> = Ok(());
+        assert!(matches!(res_o.ignore_poison(), Ok(())));
 
         // Err but not poison
-        let res: LockResult<()> = Err(LockError::LockedByCurrentThread);
-        assert!(matches!(res.ignore_poison(), Err(LockError::LockedByCurrentThread)));
+        let res_e: LockResult<()> = Err(LockError::LockedByCurrentThread);
+        assert!(matches!(res_e.ignore_poison(), Err(LockError::LockedByCurrentThread)));
 
         // Poison
-        let res: LockResult<()> = Err(PoisonError::new(()).into());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_p: LockResult<()> = Err(PoisonError::new(()).into());
+        assert!(matches!(res_p.ignore_poison(), Ok(())));
     }
 
     #[test]
     fn lock_panic_if_poison() {
         // Ok
-        let res: LockResult<()> = Ok(());
-        assert!(matches!(res.panic_if_poison(), Ok(())));
+        let res_o: LockResult<()> = Ok(());
+        assert!(matches!(res_o.panic_if_poison(), Ok(())));
 
         // Err but not poison
-        let res: LockResult<()> = Err(LockError::LockedByCurrentThread);
-        assert!(matches!(res.panic_if_poison(), Err(LockError::LockedByCurrentThread)));
+        let res_e: LockResult<()> = Err(LockError::LockedByCurrentThread);
+        assert!(matches!(res_e.panic_if_poison(), Err(LockError::LockedByCurrentThread)));
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "LockError was poison"]
     fn panicking_lock_panic_if_poison() {
         // Poison
-        let res: LockResult<()> = Err(PoisonError::new(()).into());
-        let _ = res.panic_if_poison();
+        let res_p: LockResult<()> = Err(PoisonError::new(()).into());
+        #[expect(
+            clippy::let_underscore_must_use,
+            clippy::let_underscore_untyped,
+            reason = "function never returns",
+        )]
+        let _ = res_p.panic_if_poison();
     }
 
     #[test]
     fn try_lock_ignore_poison() {
         // Ok
-        let res: TryLockResult<()> = Ok(());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_o: TryLockResult<()> = Ok(());
+        assert!(matches!(res_o.ignore_poison(), Ok(())));
 
         // Err but not poison
-        let res: TryLockResult<()> = Err(TryLockError::LockedByCurrentThread);
-        assert!(matches!(res.ignore_poison(), Err(TryLockError::LockedByCurrentThread)));
+        let res_e: TryLockResult<()> = Err(TryLockError::LockedByCurrentThread);
+        assert!(matches!(res_e.ignore_poison(), Err(TryLockError::LockedByCurrentThread)));
 
         // Poison
-        let res: TryLockResult<()> = Err(PoisonError::new(()).into());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_p: TryLockResult<()> = Err(PoisonError::new(()).into());
+        assert!(matches!(res_p.ignore_poison(), Ok(())));
     }
 
     #[test]
     fn try_lock_panic_if_poison() {
         // Ok
-        let res: TryLockResult<()> = Ok(());
-        assert!(matches!(res.panic_if_poison(), Ok(())));
+        let res_o: TryLockResult<()> = Ok(());
+        assert!(matches!(res_o.panic_if_poison(), Ok(())));
 
         // Err but not poison
-        let res: TryLockResult<()> = Err(TryLockError::LockedByCurrentThread);
-        assert!(matches!(res.panic_if_poison(), Err(TryLockError::LockedByCurrentThread)));
+        let res_e: TryLockResult<()> = Err(TryLockError::LockedByCurrentThread);
+        assert!(matches!(res_e.panic_if_poison(), Err(TryLockError::LockedByCurrentThread)));
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "TryLockError was poison"]
     fn panicking_try_lock_panic_if_poison() {
         // Poison
-        let res: TryLockResult<()> = Err(PoisonError::new(()).into());
-        let _ = res.panic_if_poison();
+        let res_p: TryLockResult<()> = Err(PoisonError::new(()).into());
+        #[expect(
+            clippy::let_underscore_must_use,
+            clippy::let_underscore_untyped,
+            reason = "function never returns",
+        )]
+        let _ = res_p.panic_if_poison();
     }
 
     #[test]
     fn access_ignore_poison() {
         // Ok
-        let res: AccessResult<()> = Ok(());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_o: AccessResult<()> = Ok(());
+        assert!(matches!(res_o.ignore_poison(), Ok(())));
 
         // Err but not poison.. is impossible.
 
         // Poison
-        let res: AccessResult<()> = Err(PoisonError::new(()).into());
-        assert!(matches!(res.ignore_poison(), Ok(())));
+        let res_p: AccessResult<()> = Err(PoisonError::new(()).into());
+        assert!(matches!(res_p.ignore_poison(), Ok(())));
     }
 
     #[test]
     fn access_panic_if_poison() {
         // Ok
-        let res: AccessResult<()> = Ok(());
-       assert!(matches!(res.panic_if_poison(), Ok(())));
+        let res_o: AccessResult<()> = Ok(());
+        assert!(matches!(res_o.panic_if_poison(), Ok(())));
 
         // Err but not poison.. is impossible.
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "AccessError is poison"]
     fn panicking_access_panic_if_poison() {
         // Poison
-        let res: AccessResult<()> = Err(PoisonError::new(()).into());
-        let _ = res.panic_if_poison();
+        let res_p: AccessResult<()> = Err(PoisonError::new(()).into());
+        #[expect(
+            clippy::let_underscore_must_use,
+            clippy::let_underscore_untyped,
+            reason = "function never returns",
+        )]
+        let _ = res_p.panic_if_poison();
     }
 
-    fn test_eq_impl<E: Eq, const N: usize>(errors: [E; N]) {
+    fn test_eq_impl<E: Eq, const N: usize>(errors: &[E; N]) {
         for (i, error) in errors.iter().enumerate() {
             for (j, other) in errors.iter().enumerate() {
                 assert_eq!(i == j, error == other);
@@ -548,10 +563,10 @@ mod test {
     #[test]
     fn eq_impls() {
         // The `::<Infallible>`s are not strictly necessary, but make it more clear.
-        test_eq_impl([
+        test_eq_impl(&[
             LockError::<Infallible>::LockedByCurrentThread,
         ]);
-        test_eq_impl([
+        test_eq_impl(&[
             TryLockError::<Infallible>::LockedByCurrentThread,
             TryLockError::<Infallible>::WouldBlock,
         ]);

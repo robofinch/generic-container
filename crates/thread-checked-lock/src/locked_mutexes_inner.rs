@@ -82,3 +82,124 @@ impl<const INLINE: usize> Default for LockedMutexesInner<INLINE> {
         Self::new()
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use std::array;
+
+    use crate::mutex_id::{next_id, run_this_before_each_test_that_creates_a_mutex_id};
+    use super::*;
+
+    fn new_lmi() -> LockedMutexesInner<4> {
+        LockedMutexesInner::new()
+    }
+
+    #[test]
+    fn lock_then_is_locked() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mut registry = new_lmi();
+        let id = next_id();
+
+        assert!(registry.register_locked(id));
+        assert!(registry.locked_by_current_thread(id));
+    }
+
+    #[test]
+    fn lock_unlock_isnt_locked() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mut registry = new_lmi();
+        let id = next_id();
+
+        assert!(registry.register_locked(id));
+        assert!(registry.register_unlocked(id));
+        assert!(!registry.locked_by_current_thread(id));
+    }
+
+    #[test]
+    fn lock_lock_unlock_lock() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mut registry = new_lmi();
+        let id = next_id();
+
+        assert!(registry.register_locked(id));
+        assert!(!registry.register_locked(id));
+        assert!(registry.register_unlocked(id));
+        assert!(registry.register_locked(id));
+    }
+
+    #[test]
+    fn unlock_lock_unlock_unlock() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mut registry = new_lmi();
+        let id = next_id();
+
+        assert!(!registry.register_unlocked(id));
+        assert!(registry.register_locked(id));
+        assert!(registry.register_unlocked(id));
+        assert!(!registry.register_unlocked(id));
+    }
+
+    fn n_locks_n_unlocks(ids: &[MutexID]) {
+        let mut registry = new_lmi();
+
+        // Unlock in LIFO order
+        for &id in ids {
+            assert!(registry.register_locked(id));
+            assert!(registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids {
+            assert!(registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids.iter().rev() {
+            assert!(registry.register_unlocked(id));
+            assert!(!registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids {
+            assert!(!registry.locked_by_current_thread(id));
+        }
+
+        // Unlock in FIFO order
+        // Unlock in LIFO order
+        for &id in ids {
+            assert!(registry.register_locked(id));
+            assert!(registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids {
+            assert!(registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids {
+            assert!(registry.register_unlocked(id));
+            assert!(!registry.locked_by_current_thread(id));
+        }
+
+        for &id in ids {
+            assert!(!registry.locked_by_current_thread(id));
+        }
+    }
+
+    #[test]
+    fn four_locks_four_unlocks() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let ids: [MutexID; 4] = array::from_fn(|_| next_id());
+        n_locks_n_unlocks(&ids);
+    }
+
+    #[test]
+    fn six_locks_six_unlocks() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let ids: [MutexID; 6] = array::from_fn(|_| next_id());
+        n_locks_n_unlocks(&ids);
+    }
+}

@@ -256,3 +256,150 @@ impl<T: ?Sized + Display> Display for ThreadCheckedMutexGuard<'_, T> {
         Display::fmt(&*self.guard, f)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    #![expect(clippy::unwrap_used, reason = "these are tests")]
+
+    use std::{sync::mpsc, thread};
+    use std::{sync::Arc, time::Duration};
+
+    use crate::mutex_id::run_this_before_each_test_that_creates_a_mutex_id;
+    use super::*;
+
+
+    #[test]
+    fn lock_then_is_locked() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = ThreadCheckedMutex::new(0_u8);
+
+        assert!(!mutex.locked_by_current_thread());
+
+        let _guard = mutex.lock().unwrap();
+
+        assert!(mutex.locked_by_current_thread());
+    }
+
+    #[test]
+    fn lock_unlock_isnt_locked() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = ThreadCheckedMutex::new(0_u8);
+
+        let guard = mutex.lock().unwrap();
+
+        assert!(mutex.locked_by_current_thread());
+
+        drop(guard);
+
+        assert!(!mutex.locked_by_current_thread());
+    }
+
+    #[test]
+    fn lock_unlock_lock() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = ThreadCheckedMutex::new(0_u8);
+
+        {
+            let _guard = mutex.lock().unwrap();
+        }
+
+        assert!(!mutex.locked_by_current_thread());
+
+        let _guard = mutex.lock().unwrap();
+
+        assert!(mutex.locked_by_current_thread());
+    }
+
+    #[test]
+    fn lock_lock_unlock_lock() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = ThreadCheckedMutex::new(0_u8);
+
+        let guard = mutex.lock().unwrap();
+
+        // An additional attempt to lock should fail.
+        assert!(matches!(
+            mutex.lock(),
+            Err(LockError::LockedByCurrentThread),
+        ));
+
+        drop(guard);
+
+        // Now it should succeed.
+        let _guard = mutex.lock().unwrap();
+    }
+
+    #[test]
+    fn locked_by_current_thread() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = Arc::new(ThreadCheckedMutex::new(()));
+        let (sender, receiver) = mpsc::channel();
+
+        let mutex_clone = Arc::clone(&mutex);
+
+        thread::spawn(move || {
+            let guard = mutex_clone.try_lock().unwrap();
+            drop(guard);
+            sender.send(()).unwrap();
+        });
+
+        // Wait to receive something.
+        receiver.recv().unwrap();
+
+        // The mutex should have been unlocked before we received anything.
+        let _guard = mutex.try_lock().unwrap();
+
+        // An additional attempt to lock should fail.
+        assert!(matches!(
+            mutex.try_lock(),
+            Err(TryLockError::LockedByCurrentThread),
+        ));
+    }
+
+    #[test]
+    fn would_block() {
+        run_this_before_each_test_that_creates_a_mutex_id();
+
+        let mutex = Arc::new(ThreadCheckedMutex::new(()));
+        let (locking_sender, locking_receiver) = mpsc::channel();
+        let (unlocking_sender, unlocking_receiver) = mpsc::channel();
+
+        let mutex_clone = Arc::clone(&mutex);
+
+        thread::spawn(move || {
+            let guard = mutex_clone.try_lock().unwrap();
+
+            locking_sender.send(()).unwrap();
+
+            // Wait to receive something.
+            unlocking_receiver.recv().unwrap();
+
+            // Block for a bit, to try to ensure that `lock` is capable of waiting.
+            thread::sleep(Duration::from_millis(50));
+
+            drop(guard);
+        });
+
+        // Wait to receive something.
+        locking_receiver.recv().unwrap();
+
+        // The mutex should have been locked before we received anything, and since we haven't
+        // sent anything, it should still be locked.
+
+        assert!(matches!(
+            mutex.try_lock(),
+            Err(TryLockError::WouldBlock),
+        ));
+
+        unlocking_sender.send(()).unwrap();
+
+        // Now `lock` should work, though `try_lock` might not.
+        let _guard = mutex.lock().unwrap();
+    }
+}

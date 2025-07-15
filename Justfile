@@ -1,4 +1,4 @@
-# TODO: (test-all) (build-all) (bench-all)
+# TODO: (build-all) (bench-all)
 
 list:
     just --list
@@ -119,7 +119,7 @@ all-channels := 'stable nightly'
 default-targets  := 'native wasm'
 
 [group("on-save")]
-on-save: (check-util "--on-save")
+on-save: (check-util "--on-save -- --all-targets")
 
 # Check-all
 
@@ -183,4 +183,35 @@ clippy-container channels=all-channels targets=default-targets *extra-args: \
 [group("clippy-package")]
 clippy-lock channels=all-channels targets=default-targets *extra-args: \
     (check-util "--command clippy" prepend("--channel ", channels) \
+     prepend("--target ", targets) "--package lock" extra-args)
+
+# Test-all
+
+[group("test")]
+test-all *extra-args: \
+    (check-util "--command test" "--all-channels" "--all-targets" "--all-packages" extra-args)
+
+[group("test-package")]
+test-container-all *extra-args: \
+    (check-util "--command test" "--all-channels" "--all-targets" "--package container" extra-args)
+
+[group("test-package")]
+test-lock-all *extra-args: \
+    (check-util "--command test" "--all-channels" "--all-targets" "--package lock" extra-args)
+
+# Test
+
+[group("test")]
+test channels=all-channels targets=default-targets *extra-args: \
+    (check-util "--command test" prepend("--channel ", channels) \
+     prepend("--target ", targets) "--all-packages" extra-args)
+
+[group("test-package")]
+test-container channels=all-channels targets=default-targets *extra-args: \
+    (check-util "--command test" prepend("--channel ", channels) \
+     prepend("--target ", targets) "--package container" extra-args)
+
+[group("test-package")]
+test-lock channels=all-channels targets=default-targets *extra-args: \
+    (check-util "--command test" prepend("--channel ", channels) \
      prepend("--target ", targets) "--package lock" extra-args)

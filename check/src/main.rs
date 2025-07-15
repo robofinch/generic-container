@@ -7,7 +7,7 @@
 //! Parameters to command-line arguments:
 //!
 //! - Possible commands:
-//!   `check`, `clippy`. Note that `clippy` runs a superset of the checks that `check` does.
+//!   `check`, `clippy`, `test`. Note that `clippy` runs a superset of the checks that `check` does.
 //! - Possible channels: `stable`, `nightly`. (`beta` is not supported.)
 //! - Possible targets:
 //!   `native` (the platform the compiler is run on),

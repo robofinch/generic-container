@@ -74,7 +74,6 @@ impl Target {
     }
 }
 
-#[expect(clippy::upper_case_acronyms, reason = "Looks better")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Package {
     GenericContainer,

@@ -78,14 +78,12 @@ impl Target {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Package {
     GenericContainer,
-    ThreadCheckedMutex,
+    ThreadCheckedLock,
 }
 
 impl Package {
     pub const fn all_packages() -> &'static [Self] {
-        &[
-            Self::GenericContainer, Self::ThreadCheckedMutex,
-        ]
+        &[Self::GenericContainer, Self::ThreadCheckedLock]
     }
 
     pub const fn default_packages() -> &'static [Self] {
@@ -95,15 +93,15 @@ impl Package {
     pub fn parse(package: &str) -> anyhow::Result<Self> {
         Ok(match package {
             "container" | "generic-container" => Self::GenericContainer,
-            "mutex" | "thread-checked-mutex"  => Self::ThreadCheckedMutex,
+            "lock" | "thread-checked-lock"    => Self::ThreadCheckedLock,
             _ => return Err(anyhow!("Unknown package name: {package}")),
         })
     }
 
     pub const fn package_name(self) -> &'static str {
         match self {
-            Self::GenericContainer   => "generic-container",
-            Self::ThreadCheckedMutex => "thread-checked-mutex",
+            Self::GenericContainer  => "generic-container",
+            Self::ThreadCheckedLock => "thread-checked-lock",
         }
     }
 

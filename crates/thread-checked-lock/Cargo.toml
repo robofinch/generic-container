@@ -1,7 +1,7 @@
 [package]
-name         = "thread-checked-mutex"
+name         = "thread-checked-lock"
 authors      = ["Finley Huggins"]
-description  = "Check if the current thread is trying to lock a mutex it already holds"
+description  = "Gracefully error when a thread attempts to acquire the same lock twice"
 # TODO: make a crate-specific README
 readme       = "../../README.md"
 keywords     = ["mutex", "checked", "deadlock"]

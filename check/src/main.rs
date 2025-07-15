@@ -17,7 +17,7 @@
 //!   `wasm` or `wasm32`,
 //!   or a full target triple.
 //! - Possible packages:
-//!   `generic-container`, `thread-checked-mutex`.
+//!   `generic-container`, `thread-checked-lock`.
 //!   The `generic-` and `thread-checked-` prefixes are optional.
 //!
 //! Command-line arguments:

@@ -80,7 +80,7 @@ impl<T: ?Sized> ThreadCheckedMutex<T> {
                     clippy::let_underscore_must_use,
                     clippy::redundant_type_annotations,
                     reason = "We already checked that the current thread hasn't locked the mutex, \
-                              so this always returns true."
+                              so this always returns true.",
                 )]
                 let _: bool = locked_mutexes::register_locked(self.mutex_id);
                 let poison = self.poisoned_guard(poison);

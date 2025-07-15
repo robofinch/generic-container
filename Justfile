@@ -79,7 +79,7 @@ check-executable := "generic-container-check"
         `wasm` or `wasm32`,
         or a full target triple.
     - Possible packages:
-        `generic-container`, `thread-checked-mutex`.
+        `generic-container`, `thread-checked-lock`.
         The `generic-` and `thread-checked-` prefixes are optional.
 
     Command-line arguments:
@@ -132,8 +132,8 @@ check-container-all *extra-args: \
     (check-util "--command check" "--all-channels" "--all-targets" "--package container" extra-args)
 
 [group("check-package")]
-check-mutex-all *extra-args: \
-    (check-util "--command check" "--all-channels" "--all-targets" "--package mutex" extra-args)
+check-lock-all *extra-args: \
+    (check-util "--command check" "--all-channels" "--all-targets" "--package lock" extra-args)
 
 # Check
 
@@ -148,9 +148,9 @@ check-container channels=all-channels targets=default-targets *extra-args: \
      prepend("--target ", targets) "--package container" extra-args)
 
 [group("check-package")]
-check-mutex channels=all-channels targets=default-targets *extra-args: \
+check-lock channels=all-channels targets=default-targets *extra-args: \
     (check-util "--command check" prepend("--channel ", channels) \
-     prepend("--target ", targets) "--package mutex" extra-args)
+     prepend("--target ", targets) "--package lock" extra-args)
 
 # Clippy-all
 
@@ -164,8 +164,8 @@ clippy-container-all *extra-args: \
     (check-util "--command clippy" "--all-channels" "--all-targets" "--package container" extra-args)
 
 [group("clippy-package")]
-clippy-mutex-all *extra-args: \
-    (check-util "--command clippy" "--all-channels" "--all-targets" "--package mutex" extra-args)
+clippy-lock-all *extra-args: \
+    (check-util "--command clippy" "--all-channels" "--all-targets" "--package lock" extra-args)
 
 # Clippy
 
@@ -181,6 +181,6 @@ clippy-container channels=all-channels targets=default-targets *extra-args: \
      prepend("--target ", targets) "--package container" extra-args)
 
 [group("clippy-package")]
-clippy-mutex channels=all-channels targets=default-targets *extra-args: \
+clippy-lock channels=all-channels targets=default-targets *extra-args: \
     (check-util "--command clippy" prepend("--channel ", channels) \
-     prepend("--target ", targets) "--package mutex" extra-args)
+     prepend("--target ", targets) "--package lock" extra-args)

@@ -24,6 +24,10 @@ impl<const INLINE: usize> LockedMutexesInner<INLINE> {
         }
     }
 
+    /// Returns `true` iff `mutex_id` was not previously locked. In either case, `mutex_id` is
+    /// registered as locked when this function returns.
+    ///
+    /// Equivalently, returns `true` iff internal state semantically changed.
     pub(crate) fn register_locked(&mut self, mutex_id: MutexID) -> bool {
         if self.inline_ids.contains(&Some(mutex_id)) {
             return false;
@@ -49,6 +53,10 @@ impl<const INLINE: usize> LockedMutexesInner<INLINE> {
         self.id_set.insert(mutex_id)
     }
 
+    /// Returns `true` iff `mutex_id` was locked. In either case, `mutex_id` is not registered
+    /// as locked when this function returns.
+    ///
+    /// Equivalently, returns `true` iff internal state semantically changed.
     pub(crate) fn register_unlocked(&mut self, mutex_id: MutexID) -> bool {
         for id in &mut self.inline_ids {
             if *id == Some(mutex_id) {
@@ -60,6 +68,7 @@ impl<const INLINE: usize> LockedMutexesInner<INLINE> {
         self.id_set.remove(&mutex_id)
     }
 
+    /// Returns `true` iff `mutex_id` was locked.
     #[inline]
     pub(crate) fn locked_by_current_thread(&self, mutex_id: MutexID) -> bool {
         self.inline_ids.contains(&Some(mutex_id))

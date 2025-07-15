@@ -10,12 +10,17 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
 
-pub(crate) type MutexID = NonZeroU64;
+/// A unique `MutexId` should be assigned to each `ThreadCheckedMutex` so that each thread
+/// can track which mutexes they have acquired.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct MutexID(NonZeroU64);
 
 /// 2^63, which is basically half of [`u64::MAX`].
 const MAX_MUTEXES_PER_PROCESS: u64 = 1 << 63;
 
 
+/// Returns a unique `MutexID` that was not returned on any previous call in the program to this
+/// function.
 pub(crate) fn next_id() -> MutexID {
     let counter = next_counter();
 
@@ -29,9 +34,14 @@ pub(crate) fn next_id() -> MutexID {
     // `counter + 1`, a sum of `u64`s, is zero. This only occurs if
     // `counter` is `u64::MAX`, which would trigger a panic above.
     #[expect(clippy::unwrap_used, reason = "panics cannot occur here, only above")]
-    NonZeroU64::new(counter + 1).unwrap()
+    let id = NonZeroU64::new(counter + 1).unwrap();
+
+    MutexID(id)
 }
 
+/// Sequentially return the next `u64`, starting at `0` when first called in the program.
+///
+/// Could theoretically wrap back to `0`.
 #[cfg(target_has_atomic = "64")]
 #[inline]
 fn next_counter() -> u64 {
@@ -40,6 +50,9 @@ fn next_counter() -> u64 {
     ID_COUNTER.fetch_add(1, Ordering::Relaxed)
 }
 
+/// Sequentially return the next `u64`, starting at `0` when first called in the program.
+///
+/// Could theoretically wrap back to `0`.
 #[cfg(not(target_has_atomic = "64"))]
 #[inline]
 fn next_counter() -> u64 {

@@ -64,6 +64,10 @@ where
     })
 }
 
+/// Returns `true` iff `mutex_id` was not previously locked. In either case, `mutex_id` is
+/// registered as locked when this function returns.
+///
+/// Equivalently, returns `true` iff internal state semantically changed.
 #[must_use]
 pub(crate) fn register_locked(mutex_id: MutexID) -> bool {
     // SAFETY:
@@ -74,6 +78,10 @@ pub(crate) fn register_locked(mutex_id: MutexID) -> bool {
     unsafe { access_locked_mutexes(|lm_inner| lm_inner.register_locked(mutex_id)) }
 }
 
+/// Returns `true` iff `mutex_id` was locked. In either case, `mutex_id` is not registered
+/// as locked when this function returns.
+///
+/// Equivalently, returns `true` iff internal state semantically changed.
 #[must_use]
 pub(crate) fn register_unlocked(mutex_id: MutexID) -> bool {
     // SAFETY:
@@ -84,6 +92,7 @@ pub(crate) fn register_unlocked(mutex_id: MutexID) -> bool {
     unsafe { access_locked_mutexes(|lm_inner| lm_inner.register_unlocked(mutex_id)) }
 }
 
+/// Returns `true` iff `mutex_id` was locked.
 #[inline]
 #[must_use]
 pub(crate) fn locked_by_current_thread(mutex_id: MutexID) -> bool {

@@ -90,7 +90,12 @@ impl<T> HandlePoisonResult for LockResult<T> {
 ///
 /// [`ThreadCheckedMutex::lock`]: super::mutex::ThreadCheckedMutex::lock
 pub enum LockError<T> {
+    /// Returned when a lock was acquired, but the lock was poisoned.
+    ///
+    /// [Read more about poison.](HandlePoisonResult#about-poison)
     Poisoned(PoisonError<T>),
+    /// Returned when a lock failed to be acquired because the thread attempting to acquire
+    /// the lock was already holding the lock.
     LockedByCurrentThread,
 }
 
@@ -212,8 +217,15 @@ impl<T> HandlePoisonResult for TryLockResult<T> {
 ///
 /// [`ThreadCheckedMutex::try_lock`]: super::mutex::ThreadCheckedMutex::try_lock
 pub enum TryLockError<T> {
+    /// Returned when a lock was acquired, but the lock was poisoned.
+    ///
+    /// [Read more about poison.](HandlePoisonResult#about-poison)
     Poisoned(PoisonError<T>),
+    /// Returned when a lock failed to be acquired because the thread attempting to acquire
+    /// the lock was already holding the lock.
     LockedByCurrentThread,
+    /// Returned when a lock failed to be acquired because the lock was already held by a thread
+    /// (other than the thread attempting to acquire the lock).
     WouldBlock,
 }
 
@@ -347,7 +359,11 @@ impl<T> HandlePoisonResult for AccessResult<T> {
     }
 }
 
-/// An error that may be returned by [`ThreadCheckedMutex::into_inner`] or
+/// Returned when a lock's data was accessed, but the lock was poisoned.
+///
+/// [Read more about poison.](HandlePoisonResult#about-poison)
+///
+/// This error may be returned by [`ThreadCheckedMutex::into_inner`] or
 /// [`ThreadCheckedMutex::get_mut`].
 ///
 /// [`ThreadCheckedMutex::into_inner`]: super::mutex::ThreadCheckedMutex::into_inner

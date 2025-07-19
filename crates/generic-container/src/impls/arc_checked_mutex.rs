@@ -59,6 +59,10 @@ impl<T: ?Sized> FragileTryContainer<T> for Arc<ThreadCheckedMutex<T>> {
         Self::new(ThreadCheckedMutex::new(t))
     }
 
+    /// Attempt to retrieve the inner `T` from the container.
+    /// Behaves identically to [`Arc::into_inner`].
+    ///
+    /// Ignores any poison errors.
     #[inline]
     fn into_inner(self) -> Option<T> where T: Sized {
         let result = Self::into_inner(self)?
@@ -73,6 +77,13 @@ impl<T: ?Sized> FragileTryContainer<T> for Arc<ThreadCheckedMutex<T>> {
         }
     }
 
+    /// Attempt to immutably access the inner `T`.
+    ///
+    /// # Errors
+    ///
+    /// This function fails if and only if [`ThreadCheckedMutex::lock`] fails.
+    ///
+    /// A poison error is not ignored, nor does it trigger a panic.
     #[inline]
     fn try_get_ref(&self) -> Result<Self::Ref<'_>, Self::RefError> {
         self.lock().map_err(Into::into)
@@ -85,6 +96,13 @@ impl<T: ?Sized> FragileTryMutContainer<T> for Arc<ThreadCheckedMutex<T>> {
     type RefMut<'a>  = ThreadCheckedMutexGuard<'a, T> where T: 'a;
     type RefMutError = ErasedLockError;
 
+    /// Attempt to mutably access the inner `T`.
+    ///
+    /// # Errors
+    ///
+    /// This function fails if and only if [`ThreadCheckedMutex::lock`] fails.
+    ///
+    /// A poison error is not ignored, nor does it trigger a panic.
     #[inline]
     fn try_get_mut(&mut self) -> Result<Self::RefMut<'_>, Self::RefMutError> {
         self.lock().map_err(Into::into)

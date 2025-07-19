@@ -12,11 +12,15 @@ impl<T: ?Sized> FragileTryContainer<T> for Arc<T> {
         Self::new(t)
     }
 
+    /// Attempt to retrieve the inner `T` from the container.
+    ///
+    /// Uses [`Arc::into_inner`].
     #[inline]
     fn into_inner(self) -> Option<T> where T: Sized {
         Self::into_inner(self)
     }
 
+    /// Infallibly get immutable access to the inner `T`.
     #[inline]
     fn try_get_ref(&self) -> Result<Self::Ref<'_>, Self::RefError> {
         Ok(self)
@@ -26,6 +30,7 @@ impl<T: ?Sized> FragileTryContainer<T> for Arc<T> {
 impl<T: ?Sized> TryContainer<T> for Arc<T> {}
 
 impl<T: ?Sized> FragileContainer<T> for Arc<T> {
+    /// Infallibly get immutable access to the inner `T`.
     #[inline]
     fn get_ref(&self) -> Self::Ref<'_> {
         self

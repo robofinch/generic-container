@@ -71,4 +71,4 @@ at your option.
 [`Mutex::try_lock`]: https://doc.rust-lang.org/std/sync/struct.Mutex.html#method.try_lock
 [`RefCell::try_borrow`]: https://doc.rust-lang.org/std/cell/struct.RefCell.html#method.try_borrow
 
-[`ThreadCheckedMutex`]: https://docs.rs/thread-checked-lock/latest/thread_checked_lock/struct.ThreadCheckedMutex.html
+[`ThreadCheckedMutex`]: https://docs.rs/thread-checked-lock/0/thread_checked_lock/struct.ThreadCheckedMutex.html

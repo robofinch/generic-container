@@ -274,7 +274,7 @@ at your option.
 [`Dupe`]: https://docs.rs/dupe/0.9/dupe/trait.Dupe.html
 [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
 [ThreadCheckedMutex]:
-  https://docs.rs/thread-checked-lock/latest/thread_checked_lock/struct.ThreadCheckedMutex.html
+  https://docs.rs/thread-checked-lock/0/thread_checked_lock/struct.ThreadCheckedMutex.html
 
 [Arc]: https://doc.rust-lang.org/std/sync/struct.Arc.html
 [`Clone`]: https://doc.rust-lang.org/std/clone/trait.Clone.html
@@ -287,11 +287,11 @@ at your option.
 [`Sized`]: https://doc.rust-lang.org/std/marker/trait.Sized.html
 [`Sync`]: https://doc.rust-lang.org/std/marker/trait.Sync.html
 
-[`Ref`]: https://docs.rs/generic-container/latest/generic_container/trait.FragileTryContainer.html#associatedtype.Ref
-[`RefMut`]: https://docs.rs/generic-container/latest/generic_container/trait.FragileTryMutContainer.html#associatedtype.RefMut
-[`GenericContainer<T, C>`]: https://docs.rs/generic-container/latest/generic_container/struct.GenericContainer.html
-[`TryContainer`]: https://docs.rs/generic-container/latest/generic_container/trait.TryContainer.html
-[`TryMutContainer<T>`]: https://docs.rs/generic-container/latest/generic_container/trait.TryMutContainer.html
+[`Ref`]: https://docs.rs/generic-container/0/generic_container/trait.FragileTryContainer.html#associatedtype.Ref
+[`RefMut`]: https://docs.rs/generic-container/0/generic_container/trait.FragileTryMutContainer.html#associatedtype.RefMut
+[`GenericContainer<T, C>`]: https://docs.rs/generic-container/0/generic_container/struct.GenericContainer.html
+[`TryContainer`]: https://docs.rs/generic-container/0/generic_container/trait.TryContainer.html
+[`TryMutContainer<T>`]: https://docs.rs/generic-container/0/generic_container/trait.TryMutContainer.html
 
 [LICENSE-APACHE]: ../../LICENSE-APACHE
 [LICENSE-MIT]: ../../LICENSE-MIT

@@ -43,7 +43,7 @@ any additional terms or conditions.
 
 
 [`Sized`]: https://doc.rust-lang.org/std/marker/trait.Sized.html
-[thread-checked mutex]: https://docs.rs/thread-checked-lock/latest/thread_checked_lock/struct.ThreadCheckedMutex.html
+[thread-checked mutex]: https://docs.rs/thread-checked-lock/0/thread_checked_lock/struct.ThreadCheckedMutex.html
 [permit their implementations to panic or deadlock]: crates/generic-container/README.md#fragility-potential-panics-or-deadlocks
 [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
 [the standard libary's mutex may do this]: https://doc.rust-lang.org/std/sync/struct.Mutex.html#method.lock

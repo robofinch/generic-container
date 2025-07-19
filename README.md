@@ -1,4 +1,4 @@
-# Generic Container (and Thread-Checked Mutex)
+# Generic Container (and Thread-Checked Lock)
 
 Abstract over how a `T` is stored and accessed by using generic "containers", bounded by
 the container traits here. A container owns a `T` and can provide references to it, or be
@@ -8,7 +8,7 @@ Some containers are fallible, or can only provide immutable references and not m
 references. The container traits are meant to be specific enough that a generic container
 can be bound more tightly by the interface it needs, to support more container implementations.
 
-The [thread-checked mutex] type is provided because implementations of the "fragile" container
+A [thread-checked mutex] type is provided because implementations of the "fragile" container
 traits [permit their implementations to panic or deadlock] if [reentrancy] occurs;
 [the standard libary's mutex may do this] if reentrancy occurs within a single thread. Non-fragile
 container traits, however, require their implementations to not completely crash and burn in this
@@ -25,8 +25,8 @@ However, to use the `Justfile`, both `just` and `cargo-hack` are necessary.
 
 ### Testing / Linting
 
-Before pushing a commit, run `just clippy-all`, which runs checks on supported combinations
-of features and several architectures.
+Before pushing a commit, run `just clippy-all` and `just test-all --no-cache`, which run checks on
+supported combinations of features and several architectures.
 
 ## License
 
@@ -42,10 +42,8 @@ this crate by you, as defined in the Apache-2.0 license, shall be dual licensed 
 any additional terms or conditions.
 
 
-TODO: check that the links should work, in particular `FragileTryContainer`.
-
 [`Sized`]: https://doc.rust-lang.org/std/marker/trait.Sized.html
-[thread-checked mutex]: https://docs.rs/thread-checked-mutex/0.1.0/thread_checked_mutex/struct.thread_checked_mutex.html
-[permit their implementations to panic or deadlock]: https://docs.rs/generic-container/0.1.0/generic_container/struct.FragileTryContainer.html
+[thread-checked mutex]: https://docs.rs/thread-checked-lock/latest/thread_checked_lock/struct.ThreadCheckedMutex.html
+[permit their implementations to panic or deadlock]: crates/generic-container/README.md#fragility-potential-panics-or-deadlocks
 [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
 [the standard libary's mutex may do this]: https://doc.rust-lang.org/std/sync/struct.Mutex.html#method.lock

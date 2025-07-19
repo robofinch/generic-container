@@ -2,7 +2,7 @@
 <h1> Thread-checked Lock </h1>
 </div>
 
-[<img alt="github" src="https://img.shields.io/badge/github-robofinch/thread--checked--lock-08f?logo=github" height="20">](https://github.com/robofinch/generic-container/tree/main/crates/thread-checked-lock)
+[<img alt="github" src="https://img.shields.io/badge/github-thread--checked--lock-08f?logo=github" height="20">](https://github.com/robofinch/generic-container/tree/main/crates/thread-checked-lock)
 [![Latest version](https://img.shields.io/crates/v/thread-checked-lock.svg)](https://crates.io/crates/thread-checked-lock)
 [![Documentation](https://img.shields.io/docsrs/thread-checked-lock)](https://docs.rs/thread-checked-lock)
 [![Apache 2.0 or MIT license.](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue.svg)](#license)

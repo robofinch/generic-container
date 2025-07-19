@@ -4,7 +4,7 @@ authors      = ["Finley Huggins"]
 description  = 'Abstract over "containers" that hold a T, such as a T itself, Box<T>, or Arc<Mutex<T>>'
 readme       = "README.md"
 keywords     = ["abstraction", "generic", "box", "rc", "arc"]
-categories   = ["memory-management", "concurrency", "rust-patterns"]
+categories   = ["memory-management", "concurrency", "rust-patterns", "no-std", "no-std::no-alloc"]
 # TODO: explicitly define `include`
 version      .workspace = true
 edition      .workspace = true
@@ -17,12 +17,13 @@ workspace = true
 
 
 [dependencies]
-# TODO: document that enabling the "thread-checked-lock" feature implements container traits for
-# `Arc<ThreadCheckedMutex<T>>`.
 thread-checked-lock = { workspace = true, optional = true }
 
 [dev-dependencies]
 dupe.workspace = true
 
 [features]
-default = ["thread-checked-lock"]
+default = ["std"]
+thread-checked-lock = ["dep:thread-checked-lock", "std"]
+std = ["alloc"]
+alloc = []

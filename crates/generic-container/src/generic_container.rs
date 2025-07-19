@@ -3,8 +3,8 @@
     reason = "the wrapper type should mostly just delegate",
 )]
 
-use std::{cmp::Ordering, marker::PhantomData};
-use std::{
+use core::{cmp::Ordering, marker::PhantomData};
+use core::{
     fmt::{Debug, Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
 };

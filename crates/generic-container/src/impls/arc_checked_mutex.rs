@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use alloc::sync::Arc;
 
 use thread_checked_lock::{
     HandlePoisonResult as _, LockError, ThreadCheckedMutex, ThreadCheckedMutexGuard,

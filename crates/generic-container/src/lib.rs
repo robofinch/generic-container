@@ -26,6 +26,17 @@
 #![cfg_attr(doc, doc = include_str!("../README.md"))]
 
 
+#![no_std]
+#![warn(clippy::std_instead_of_alloc)]
+#![warn(clippy::std_instead_of_core)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
+
+
 mod container_traits;
 mod impls;
 mod generic_container;
@@ -35,7 +46,7 @@ mod generic_container;
 #[cfg(test)]
 use dupe as _;
 
-pub use self::{generic_container::GenericContainer, impls::CheckedRcRefCell};
+pub use self::generic_container::GenericContainer;
 pub use self::container_traits::{
     // The core eight
     FragileTryContainer,    TryContainer,    FragileContainer,    Container,
@@ -45,5 +56,7 @@ pub use self::container_traits::{
     BaseContainer, BaseMutContainer,
 };
 
+#[cfg(feature = "alloc")]
+pub use self::impls::CheckedRcRefCell;
 #[cfg(feature = "thread-checked-lock")]
 pub use self::impls::ErasedLockError;

@@ -1,5 +1,6 @@
-use std::convert::Infallible;
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use core::convert::Infallible;
+use alloc::sync::Arc;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::container_traits::{
     FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,

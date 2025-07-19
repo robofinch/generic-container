@@ -1,5 +1,6 @@
-use std::convert::Infallible;
-use std::sync::{Arc, Mutex, MutexGuard};
+use core::convert::Infallible;
+use alloc::sync::Arc;
+use std::sync::{Mutex, MutexGuard};
 
 use crate::container_traits::{
     FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,

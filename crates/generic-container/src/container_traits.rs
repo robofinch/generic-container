@@ -1,5 +1,5 @@
-use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
+use core::fmt::Debug;
+use core::ops::{Deref, DerefMut};
 
 
 // ================================================================

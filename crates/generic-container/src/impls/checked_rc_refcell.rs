@@ -1,5 +1,5 @@
-use std::rc::Rc;
-use std::cell::{BorrowError, BorrowMutError, Ref, RefCell, RefMut};
+use alloc::rc::Rc;
+use core::cell::{BorrowError, BorrowMutError, Ref, RefCell, RefMut};
 
 use crate::container_traits::{
     FragileTryContainer, FragileTryMutContainer, TryContainer, TryMutContainer,

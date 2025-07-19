@@ -1,4 +1,5 @@
-use std::{convert::Infallible, sync::Arc};
+use core::convert::Infallible;
+use alloc::sync::Arc;
 
 use crate::container_traits::{Container, FragileContainer, FragileTryContainer, TryContainer};
 

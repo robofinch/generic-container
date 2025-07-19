@@ -227,7 +227,12 @@ as needed.
 # Features
 
 - `thread-checked-lock`: if enabled, [`TryMutContainer<T>`] is implemented for
-  <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>.
+  <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>. Implies the `std` feature.
+- `std`: enables support for `Arc<Mutex<T>>` and `Arc<RwLock<T>>`. Enabled by default. Implies
+  the `alloc` feature.
+- `alloc`: enables container implementations based on `Box`, `Rc`, `Arc`, and `RefCell`. Without
+  `alloc`, the container traits are still available, and `T` is a container for itself. Enabled
+  by default.
 
 # MSRV
 

@@ -1,5 +1,6 @@
-use std::{convert::Infallible, rc::Rc};
-use std::cell::{Ref, RefCell, RefMut};
+use core::convert::Infallible;
+use core::cell::{Ref, RefCell, RefMut};
+use alloc::rc::Rc;
 
 use crate::container_traits::{
     FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,

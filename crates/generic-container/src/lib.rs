@@ -1,4 +1,6 @@
 //! # Generic Container
+// TODO: badges
+//!
 //! Abstract over how a `T` is stored and accessed by using generic "containers", bounded by
 //! the container traits here. A container owns a `T` and can provide references to it, or be
 //! consumed to return the inner `T` (if `T` is [`Sized`]).
@@ -6,6 +8,9 @@
 //! Some containers are fallible, or can only provide immutable references and not mutable
 //! references. The container traits are meant to be specific enough that a generic container
 //! can be bound more tightly by the interface it needs, to support more container implementations.
+//!
+//! Skip to [here](crate#provided-container-implementations) for a list of the provided container
+//! implementations.
 //!
 //! ## Motivation
 //!
@@ -22,7 +27,8 @@
 //! sorts of uses in a performant way, this crate can help. The traits here allow a type
 //! to abstract over how something is held and accessed by using a generic "container", and
 //! blanket implementations for `Trait` can implement `Trait` for any container wrapping
-//! `dyn Trait` or a `T: Trait` [^blanket-container-t].
+//! `dyn Trait`, or effectively `T: Trait` in general with the help of a container wrapper type
+//! [^blanket-container-t].
 //!
 //! Choices like these can be deferred to the consumer of your types (or traits):
 //! - Is the tradeoff between atomic refcounts and `Send` or `Sync` worth it?
@@ -37,7 +43,7 @@
 //!   may want something like `Container<dyn Trait>`[^container-dyn-trait].
 //!
 //! Particular traits worth abstracting over are [`Clone`] (or a cheap clone like [`dupe::Dupe`]
-//! in particular), `Send`, and `Sync`.
+//! in particular), [`Send`], and [`Sync`].
 //!
 //! Additionally, trait authors may wish to allow any generics bound by your traits to optionally
 //! use `dyn` instead of monomorphizing everything; a standard way to allow for this is to
@@ -47,20 +53,14 @@
 //!
 //! ## Example
 //!
-// TODO: link the wikipedia page for [reentrancy].
-//!
-//! ```
-//! // Note: "Fragile" means that, depending on the implementation, attempting to get multiple live
-//! // borrows from the container in the same thread might panic or deadlock. In other words,
-//! // fragile containers must not be assumed to handle reentrancy well; they might not even
-//! // gracefully return an error.
+//! ```rust
 //! use generic_container::FragileContainer;
 //!
 //! trait MyTrait {
 //!     fn calculate_something(&self) -> u32;
 //! }
 //!
-//! // Wwhenever something is generic over `MyTrait`, thanks to this blanket impl, we could opt into
+//! // Whenever something is generic over `MyTrait`, thanks to this blanket impl, we could opt into
 //! // using `Box<dyn MyTrait>`, `Arc<dyn MyTrait>`, and so on. This way, being generic over
 //! // `MyTrait` gives the user a strict superset of the abilities they'd have if we only used
 //! // `dyn MyTrait` internally.
@@ -78,7 +78,6 @@
 //!     /// See [`FragileContainer::get_ref`].
 //!     #[inline]
 //!     fn calculate_something(&self) -> u32 {
-//!         // Note: "fragile"
 //!         self.get_ref().calculate_something()
 //!     }
 //! }
@@ -87,62 +86,164 @@
 //!
 //! // This is effectively the same thing you'd get if you used a `dyn` object instead of a generic
 //! // above; the user of your struct loses nothing.
-//! type BoxedNeedsToCalculateSomething = NeedsToCalculateSomething<Box<dyn MyTrait>>;
+//! type NeedsToCalculateSomethingDyn = NeedsToCalculateSomething<Box<dyn MyTrait>>;
 //! ```
 //!
 //! # Container Traits
-//! There are eight container traits provided here, with every combination of the following aspects:
+//! Eight main container traits are provided here, with every combination of the following aspects:
 //! - Mutability: whether a container can provide mutable references to the value stored in the
 //!   container, in addition to immutable references.
-//! - Fallibility: a container is fallible if `try_get_ref` can fail.
-//! - Fragility: a fragile container is not guaranteed to be reentrant, and may panic or deadlock
-//!   if `try_get_ref` (or similar) is called by a thread that already has a live reference to the
-//!   value stored in the container.
+//! - Fallibility: a container is fallible if `try_get_ref` or `try_get_mut` can fail, and
+//!   `get_ref` or `get_mut` cannot be provided.
+//! - Fragility: a fragile container is not guaranteed to support reentrancy, and may panic or
+//!   deadlock if `try_get_ref` (or similar) is called by a thread that already has a live reference
+//!   to the value stored in the container.
 //!
 //! Mutability is indicated by the prefix `Mut`, fallibility by the prefix `Try`, and fragility
 //! by the prefix `Fragile`. They are combined in the order "`FragileTryMutContainer`".
 //!
-//! Implementors of the traits must manually implement each of them; there are no blanket
-//! `Container` implementations for `TryContainer` types whose error types are uninhabited,
-//! for instance.
+//! There are also two de facto trait aliases which replace "`FragileTry`" with "`Base`" in the two
+//! `FragileTry*Container` traits.
+//!
+//! Except for the `Base*Container` traits intended as aliases, implementors of the traits
+//! must manually implement each of them; there are no blanket [`Container`] implementations for
+//! [`TryContainer`] types whose error types are uninhabited, for instance.
 //!
 //! When bounding a generic by a container trait, you should generally bound by the minimum
 //! container interface you need, plus any other marker trait needed, like [`Clone`] (or a cheap
-//! clone like [`dupe::Dupe`]), `Send`, and `Sync`.
+//! clone like [`dupe::Dupe`]), [`Send`], and [`Sync`]. Conversely, you should bound the `T` which
+//! the container is required to store as tightly as you can, especially by [`Sized`], [`Send`],
+//! and [`Sync`].
+//!
+//! ## Fragility: Potential Panics or Deadlocks
+//!
+//! The [`Ref`] associated types of some container implementations (and [`RefMut`] for mutable
+//! containers) may have nontrivial [`Drop`] impls that interfere with other attempts to borrow from
+//! the container, and possibly from other clones of the container referencing the same inner data.
+//! Such a container might be "fragile", unless it implements additional container traits
+//! indicating that it is not.
+//!
+//! Being "fragile" means that a single thread should not attempt to get multiple live references
+//! to the `T` in the container, whether from the same container instance or clones referencing the
+//! same inner `T`. Doing so risks a panic or deadlock (such as in the case of `Arc<Mutex<T>>`).
+//! In other words, the fragile container traits do not guarantee that the container handles
+//! [reentrancy] gracefully. A thread should drop any borrow obtained from the fragile container's
+//! methods accessing its inner `T` before a new reference to the inner `T` can be obtained without
+//! any risk of panic or deadlock.
+//!
+//! ## Containers
+//! Common examples of containers include `T` itself, `Box<T>`, `Rc<T>`, `Rc<RefCell<T>>`, `Arc<T>`,
+//! `Arc<RwLock<T>>`, and `Arc<Mutex<T>>`.
+//!
+//! Additionally, container traits are implemented for [`CheckedRcRefCell<T>`] (from this crate) and
+//! <code>[Arc]<[ThreadCheckedMutex]\<T\>></code> (when the `thread-checked-lock` feature is enabled).
+//!
+//! Note that `CheckedRcRefCell<T>` and `Arc<ThreadCheckedMutex<T>>` essentially shift how the
+//! runtime invariants of a `RefCell` or `Mutex` are enforced; with a fragile implementation, the
+//! user is required to enforce them (on pain of panics or deadlocks), while with a fallible
+//! implementation, such usage will still fail, but not fatally. Defaulting to the fragile
+//! implementations is likely the best choice.
+//!
+//! Some container implementations choose to panic if a poison error is encountered, as a poison
+//! error can only occur if another thread has already panicked.
+//!
+//! Other crates may implement container traits for their own types.
+//!
+//! ## Provided Container Implementations
+//! This crate provides the following container implementations:
+//!
+//! - For `MutContainer<T>` (and its supertraits):
+//!   - `T` itself
+//!   - `Box<T>`
+//!
+//! - For `Container<T>` (and its supertraits):
+//!   - `Rc<T>`
+//!   - `Arc<T>`
+//!
+//! - For `FragileMutContainer<T>` (and its supertraits):
+//!   - `Rc<RefCell<T>>`
+//!   - `Arc<RwLock<T>>` (implementation may panic on poison)
+//!   - `Arc<Mutex<T>>` (implementation may panic on poison)
+//!
+//! - For `TryMutContainer<T>` (and its supertraits):
+//!   - `CheckedRcRefCell<T>`
+//!   - `Arc<ThreadCheckedMutex<T>>` (only if the `thread-checked-lock` feature is enabled)
 //!
 //! ## Container Kind traits
-//! Currently, Rust doesn't allow bounds like `where C: for<T> Container<T> + Clone + Send + Sync`.
-//! The solution is to define an extra trait with whatever you need for a GAT's bounds:
 //!
-//! ```
-//! use generic_container::MutContainer;
+//! Currently, Rust doesn't allow bounds like
+//! `where C: for<T: Send> Container<T> + Clone + Send + Sync`.
+//! The solution is to define an extra trait with whatever you need as the bounds of a GAT
+//! (generic associated type):
+//! ```rust
+//! use generic_container::FragileMutContainer;
 //! use dupe::Dupe;
 //!
 //! pub trait NeededContainerStuff {
-//!    type Container<T: ?Sized>: MutContainer<T> + Dupe + Send + Sync;
+//!    // Implementors should use `T: ?Sized` when possible. But right now, the only way to create,
+//!    // for example, `Arc<Mutex<[T]>>` is via unsizing coercion from `Arc<Mutex<[T; N]>>`;
+//!    // as such, a `T: ?Sized` bound would be somewhat useless without also requiring the
+//!    // container to support unsizing coercion, which currently requires nightly-only traits.
+//!    type MutableContainer<T: Send>: FragileMutContainer<T> + Dupe + Send + Sync;
 //! }
 //! ```
 //!
-//! Here, such a trait is referred to as a "container kind trait" (with implementations being
+//! If some data needs thread-safe mutability, but you don't want to pay the cost of a lock for
+//! read-only data, you can use multiple GATs:
+//! ```rust
+//! use generic_container::{FragileMutContainer, Container};
+//! use dupe::Dupe;
+//!
+//! pub trait NeededContainerStuff {
+//!    // E.g.: `Arc<Mutex<T>>`, or something `parking_lot`-based
+//!    type MutableContainer<T: Send>: FragileMutContainer<T> + Dupe + Send + Sync;
+//!    // E.g.: `Arc<T>`
+//!    type ReadOnlyContainer<T: Send + Sync>: Container<T> + Dupe + Send + Sync;
+//! }
+//! ```
+//!
+//! Such a trait could be referred to as a "container kind trait" (with implementations being
 //! "container kinds", just as implementations of the container traits are "containers").
+//! Relevant characteristics for a container kind's container include the eight container traits,
+//! `Send + Sync` bounds (possibly only when `T` is `Send + Sync`, or just `Send`), [`Dupe`],
+//! whether the GAT allows `T` to be unsized, and `Debug` bounds.
 //!
-//! There are 32 combinations of trait bounds most likely to be of concern, from the eight
-//! container traits, with or without `Dupe` bounds, and with or without `Send + Sync` bounds.
-//! `*ContainerKind` traits are provided for these cases. (Half of them are gated behind the
-//! `dupe` feature.) Note also that none of these cases are `?Sized`; although a container type
-//! *could* be unsized, presumably a `Sized` container is usually needed in practice. See the
-//! [`kinds`] module for more.
+//! Unfortunately, creating one container kind trait for each combination of bounds requires
+//! exponentially many traits, and creating simple container kind traits that can be combined into
+//! more complicated bounds does *work*, but not well. A container kind should set the GAT of each
+//! container kind trait it implements to the same container type; this *can* be asserted or
+//! required with Rust's type system, but the trait solver doesn't understand it very well. Such
+//! container kind traits would likely not be pleasant to use.
 //!
-//! TODO: what about debug bounds? Do I need `DebugContainerKind` and `DebugMutContainerKind`?
-//! Is `#[derive(Debug)]` good enough?
+//! As such, container kind traits are not provided here; you should create traits with GATs
+//! as needed.
 //!
+//! # Features
 //!
-//! TODO: add links to the types in the below footnotes
+//! - `thread-checked-lock`: if enabled, [`TryMutContainer<T>`] is implemented for
+//!   <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>.
+//!
+//! # MSRV
+//!
+//! Rust 1.85, the earliest version of the 2024 edition, is supported.
+//!
+//! # License
+//!
+//! Licensed under either of
+//!
+//! * Apache License, Version 2.0 ([LICENSE-APACHE][])
+//! * MIT license ([LICENSE-MIT][])
+//!
+//! at your option.
+//!
 //!
 //! [^blanket-container-t]: To satisfy the trait solver and avoid conflicting trait implementations,
-//!   a [`Contained<T, C>`] struct is provided. It is not necessary for blanket implementations
-//!   over containers holding `dyn Trait`, but should be used for blanket implementations of `Trait`
-//!   for containers holding an arbitrary `T: Trait`.
+//!   a [`GenericContainer<T, C>`] struct is provided. It is not necessary for blanket
+//!   implementations over containers holding `dyn Trait`, but should be used for blanket
+//!   implementations of `Trait` for containers holding an arbitrary `T: Trait` or
+//!   `T: ?Sized + Trait`. (Note that `dyn Trait: !Sized + Trait`, so an implementation for
+//!   `dyn Trait` does not conflict with a blanket implementation for `T: Trait`, but a blanket
+//!   implementation for `T: ?Sized + Trait` includes the `dyn Trait` case.)
 //! [^container-dyn-trait]: `Container<dyn Trait>` might not be the best choice;
 //!   [`FragileContainer`] is preferred if possible. Just as functions are encouraged to take
 //!   [`FnOnce`] or [`FnMut`] callbacks rather than [`Fn`] (if possible), it would be best to accept
@@ -163,24 +264,54 @@
 //!   `FragileContainer<dyn ReentrantTrait>` would make it easy to hand a fragile container to
 //!   something expecting a normal `ReentrantTrait`, leading to potential panics or deadlocks.
 //!
-#![cfg_attr(
-    not(feature = "dupe"),
-    doc = " [`dupe::Dupe`]: https://docs.rs/dupe/0.9.1/dupe/trait.Dupe.html",
-)]
-
-
-// TODO TODO TODO: there's a TODO in the crate documentation above. Don't forget about it.
+//!
+//! [`dupe::Dupe`]: https://docs.rs/dupe/0.9/dupe/trait.Dupe.html
+//! [`Dupe`]: https://docs.rs/dupe/0.9/dupe/trait.Dupe.html
+//! [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
+//! [ThreadCheckedMutex]:
+//!   https://docs.rs/thread-checked-lock/latest/thread_checked_lock/struct.ThreadCheckedMutex.html
+//!
+//! [Arc]: std::sync::Arc
+//! [`Clone`]: Clone
+//! [`Copy`]: Copy
+//! [`Drop`]: Drop
+//! [`FnOnce`]: FnOnce
+//! [`Fn`]: Fn
+//! [`FnMut`]: FnMut
+//! [`Send`]: Send
+//! [`Sized`]: Sized
+//! [`Sync`]: Sync
+//!
+//! [`Ref`]: FragileTryContainer::Ref
+//! [`RefMut`]: FragileTryMutContainer::RefMut
+//! [`GenericContainer<T, C>`]: GenericContainer
+//! [`FragileContainer::get_ref`]: FragileContainer::get_ref
+//! [`TryContainer`]: TryContainer
+//! [`TryMutContainer<T>`]: TryMutContainer
+//!
+// File links are not supported by rustdoc
+//! [LICENSE-APACHE]: https://github.com/robofinch/generic-container/blob/main/LICENSE-APACHE
+//! [LICENSE-MIT]: https://github.com/robofinch/generic-container/blob/main/LICENSE-MIT
 
 
 mod container_traits;
 mod impls;
-mod contained;
-
-pub mod kinds;
+mod generic_container;
 
 
-pub use self::contained::Contained;
+// `dupe` is only used in doctests, which still triggers the `unused_crate_dependencies` lint.
+#[cfg(test)]
+use dupe as _;
+
+pub use self::{generic_container::GenericContainer, impls::CheckedRcRefCell};
 pub use self::container_traits::{
-    Container, FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,
-    MutContainer, TryContainer, TryMutContainer,
+    // The core eight
+    FragileTryContainer,    TryContainer,    FragileContainer,    Container,
+    FragileTryMutContainer, TryMutContainer, FragileMutContainer, MutContainer,
+
+    // Non-nightly "trait aliases"
+    BaseContainer, BaseMutContainer,
 };
+
+#[cfg(feature = "thread-checked-lock")]
+pub use self::impls::ErasedLockError;

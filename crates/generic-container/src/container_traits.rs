@@ -2,33 +2,19 @@ use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 
 
-// TODO: unify documentation about reentrancy, and standardize the wording of reference and borrow.
-// I think "borrow" might be better.
-
 // ================================================================
-//  The four `{Fragile|}{Try|}Container` types
+//  The four `{Fragile|}{Try|}Container` traits
 // ================================================================
 
 /// An abstraction over some container which owns a `T` and can provide immutable references to it,
 /// or be consumed to return the inner `T` (if `T` is [`Sized`]).
 ///
-/// Common examples include `Box<T>`, `Rc<T>`, `Rc<RefCell<T>>`, `Arc<T>`, `Arc<RwLock<T>>`,
-/// `Arc<Mutex<T>>`, and a `T` itself.
-///
-/// TODO: this next sentence might need to be updated at some point.
-///
-/// Additionally, [`CheckedRcRefCell<T>`],
-/// [`CheckedArcRwLock<T>`], and [`CheckedArcMutex<T>`] are provided (which perform additional
-/// checks that should be unnecessary in bug-free code).
+/// This is the base container trait, which places the fewest requirements on implementors.
 ///
 /// # Fragility: Potential Panics or Deadlocks
 ///
-/// A single thread should not attempt to get multiple live references to the `T` in a
-/// `FragileTryContainer`, whether from the same container struct or clones referencing the same
-/// inner `T`. Doing so risks a panic or deadlock (such as in the case of `Arc<Mutex<T>>`), unless
-/// this `FragileTryContainer` is also a [`TryContainer`]. In other words, `FragileTryContainer`
-/// does not guarantee that the container handles [reentrancy] gracefully. A thread should drop any
-/// existing borrow before a new borrow may be obtained from the fragile container.
+/// Unless a `FragileTryContainer` is known to also implement [`TryContainer`], it should be treated
+/// as [fragile].
 ///
 /// # Errors
 ///
@@ -38,86 +24,77 @@ use std::ops::{Deref, DerefMut};
 ///
 /// [`into_inner`]: FragileTryContainer::into_inner
 /// [`try_get_ref`]: FragileTryContainer::try_get_ref
-/// [`CheckedRcRefCell<T>`]: TODO::TODO::TODO
-/// [`CheckedArcRwLock<T>`]: TODO::TODO::TODO
-/// [`CheckedArcMutex<T>`]: TODO::TODO::TODO
-/// [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
+/// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileTryContainer<T: ?Sized> {
     type Ref<'a>:  Deref<Target = T> where Self: 'a;
-    type RefError: Debug;
+    type RefError;
 
     /// Create a new container that owns the provided `T`.
     #[must_use]
-    fn new_container(t: T) -> Self;
+    fn new_container(t: T) -> Self where Self: Sized, T: Sized;
 
     /// Attempt to retrieve the inner `T` from the container.
     ///
-    /// If the container allows for multiple handles to the same `T` (as with `Rc` or `Arc`),
-    /// and this method is called on each of those handles, then `Some(T)` should be returned
-    /// for exactly one container.
+    /// ### Note for implementors
+    ///
+    /// Given a collection of containers that refer to the same inner `T` (as with several cloned
+    /// `Rc` or `Arc` containers, or the trivial case of a single container like `Box<T>`), if
+    /// `into_inner` is called on each of those containers, then an implementation should return
+    /// `Some(T)` for exactly one of them, unless there is some useful reason for the implementation
+    /// to do otherwise.
     #[must_use]
-    fn into_inner(self) -> Option<T> where T: Sized;
+    fn into_inner(self) -> Option<T> where Self: Sized, T: Sized;
 
-    /// Immutably borrow the wrapped `T`.
+    /// Attempt to immutably access the inner `T`.
+    ///
+    /// There are no particular constraints imposed on implementations. In particular, depending on
+    /// the container implementation:
+    /// - the function could be infallible,
+    /// - the function could panic or deadlock (see below),
+    /// - retrying the function in a loop might never succeed.
+    ///
+    /// However, if the container implements [`FragileContainer<T>`], then implementors should
+    /// usually make `try_get_ref` infallible as well, unless there is some useful reason to not
+    /// do so.
     ///
     /// # Fragility: Potential Panics or Deadlocks
     ///
-    /// Depending on the container implementation, the borrow may have a nontrivial `Drop` impl
-    /// that interferes with other attempts to borrow from this container or other clones of
-    /// the container.
-    ///
     /// Unless this [`FragileTryContainer`] is also a [`TryContainer`], implementations are
-    /// permitted to panic or deadlock if a single thread fails to drop previous references and
-    /// attempts to obtain multiple live references.
+    /// permitted to panic or deadlock if this method is called from a thread which already has a
+    /// reference to the inner `T` of this container.
+    ///
+    /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
     fn try_get_ref(&self) -> Result<Self::Ref<'_>, Self::RefError>;
 }
 
 /// An abstraction over some container which owns a `T` and can infallibly provide immutable
 /// references to it, or attempt to be consumed to return the inner `T` (if `T` is [`Sized`]).
 ///
-/// Common examples include `Box<T>`, `Rc<T>`, `Rc<RefCell<T>>`, `Arc<T>`, `Arc<RwLock<T>>`,
-/// `Arc<Mutex<T>>`, and a `T` itself.
-///
-/// Note that the implementations for `Arc<RwLock<T>>` and `Arc<Mutex<T>>` will panic on poison
-/// errors, as other threads should not panic unless a bug was encountered somewhere. Similarly,
-/// the implementation for `Rc<RefCell<T>>` may panic if borrowing from the `RefCell` would violate
-/// aliasing rules; however, if the below rules about handling a [`FragileTryContainer`] or
-/// `FragileContainer` are followed, the implementation will not panic.
-///
-/// TODO: this next sentence might need to be updated at some point.
-///
-/// [`CheckedRcRefCell<T>`], [`CheckedArcRwLock<T>`], and [`CheckedArcMutex<T>`] return errors
-/// instead of panicking when such bugs are encountered (and are thus not infallible).
-///
 /// # Fragility: Potential Panics or Deadlocks
 ///
-/// A single thread should not attempt to get multiple live references to the `T` in a
-/// `FragileContainer`, whether from the same container struct or clones referencing the same
-/// inner `T`. Doing so risks a panic or deadlock (such as in the case of `Arc<Mutex<T>>`), unless
-/// this `FragileContainer` is also a [`Container`]. In other words, `FragileContainer` does not
-/// guarantee that the container handles [reentrancy] gracefully. A thread should drop any existing
-/// borrow before a new borrow may be obtained from the fragile container.
+/// This container should be assumed to be [fragile], unless it is known to implement
+/// [`Container<T>`].
 ///
 /// # `None` values
 ///
-/// Note that `into_inner` is still permitted to return `None`, even though `get_ref` and
-/// `try_get_ref` do not fail. A container should clearly document when `into_inner` returns `None`.
+/// Note that [`into_inner`] is still permitted to return `None`, even though [`get_ref`] does not
+/// fail, and most implementors should make [`try_get_ref`] infallible as well. A container should
+/// clearly document when [`into_inner`] returns `None`.
 ///
-/// [`CheckedRcRefCell<T>`]: TODO::TODO::TODO
-/// [`CheckedArcRwLock<T>`]: TODO::TODO::TODO
-/// [`CheckedArcMutex<T>`]: TODO::TODO::TODO
-/// [reentrancy]: https://en.wikipedia.org/wiki/Reentrancy_(computing)
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`get_ref`]: FragileContainer::get_ref
+/// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileContainer<T: ?Sized>: FragileTryContainer<T> {
-    /// Immutably borrow the wrapped `T`.
+    /// Immutably borrow the inner `T`.
     ///
     /// # Fragility: Potential Panics or Deadlocks
     ///
-    /// A single thread should not attempt to get multiple live references to the `T` in a
-    /// `FragileContainer`, whether from the same container struct or clones referencing the same
-    /// inner `T`. Doing so risks a panic or deadlock (such as in the case of `Arc<Mutex<T>>`),
-    /// unless this `FragileContainer` is also a [`Container`]. In other words, `FragileContainer`
-    /// does not guarantee that the container handles [reentrancy] gracefully. A thread must drop
-    /// any existing borrow before a new borrow may be obtained from the fragile container.
+    /// Unless this [`FragileContainer`] is also a [`Container`], implementations are
+    /// permitted to panic or deadlock if this method is called from a thread which already has a
+    /// reference to the inner `T` of this container.
+    ///
+    /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
     #[must_use]
     fn get_ref(&self) -> Self::Ref<'_>;
 }
@@ -125,55 +102,161 @@ pub trait FragileContainer<T: ?Sized>: FragileTryContainer<T> {
 /// An abstraction over some container which owns a `T` and can provide immutable references to it,
 /// or be consumed to return the inner `T` (if `T` is [`Sized`]).
 ///
-/// Common examples include `Box<T>`, `Rc<T>`, `Arc<T>`, and a `T` itself.
-///
-/// Notably, `Rc<RefCell<T>>` and `Arc<Mutex<T>>` only implement [`FragileContainer`] and not
-/// [`Container`] or [`TryContainer`], as attempting to get multiple mutable borrows in a single
-/// thread from the same `RefCell` or `Mutex` would cause a panic or deadlock. A `TryContainer`
-/// implementation must not panic or deadlock due to existing live borrows in the same thread.
-///
-/// TODO: note alternatives which are fine. Also, mention `Arc<RwLock<T>>`.
-///
 /// # Errors
 ///
 /// The [`into_inner`] and [`try_get_ref`] methods may be able to fail, depending on the container;
 /// a container should clearly document the circumstances in which a `None` or `Err` variant may
 /// be returned.
 ///
-/// [`try_borrow`]: std::cell::RefCell::try_borrow
-/// [`into_inner`]: FragileContainer::into_inner
-/// [`try_get_ref`]: FragileContainer::try_get_ref
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
 pub trait TryContainer<T: ?Sized>: FragileTryContainer<T> {}
 
 /// An abstraction over some container which owns a `T` and can infallibly provide immutable
 /// references to it, or attempt to be consumed to return the inner `T` (if `T` is [`Sized`]).
 ///
-/// Common examples include `Box<T>`, `Rc<T>`, `Arc<T>`, and a `T` itself.
+/// # `None` values
 ///
-/// TODO: mention more container types.
+/// Note that [`into_inner`] is still permitted to return `None`, even though [`get_ref`] does not
+/// fail, and most implementors should make [`try_get_ref`] infallible as well. A container should
+/// clearly document when [`into_inner`] returns `None`.
 ///
-/// Note that `into_inner` is still permitted to return `None`, even though `get_ref` and
-/// `try_get_ref` do not fail. A container should clearly document when `into_inner` returns `None`.
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`get_ref`]: FragileContainer::get_ref
 pub trait Container<T: ?Sized>: FragileContainer<T> + TryContainer<T> {}
 
 // ================================================================
-//  The four `{Fragile|}{Try|}MutContainer` types
+//  The four `{Fragile|}{Try|}MutContainer` traits
 // ================================================================
 
-// TODO: documentation
-
+/// An abstraction over some container which owns a `T` and can provide mutable or immutable
+/// references to it, or be consumed to return the inner `T` (if `T` is [`Sized`]).
+///
+/// This is the base mutable container trait, which places the fewest requirements on container
+/// implementations that can provide mutable access to the inner `T`.
+///
+/// # Fragility: Potential Panics or Deadlocks
+///
+/// Unless a `FragileTryMutContainer` is known to also implement [`TryMutContainer`], it should be
+/// treated as [fragile].
+///
+/// # Errors
+///
+/// The [`into_inner`], [`try_get_ref`], and [`try_get_mut`] methods may be able to fail, depending
+/// on the container; a container should clearly document the circumstances in which a `None` or
+/// `Err` variant may be returned.
+///
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
+/// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileTryMutContainer<T: ?Sized>: FragileTryContainer<T> {
     type RefMut<'a>:  DerefMut<Target = T> where Self: 'a;
     type RefMutError: Debug;
 
+    /// Attempt to mutably access the inner `T`.
+    ///
+    /// There are no particular constraints imposed on implementations. In particular, depending on
+    /// the container implementation:
+    /// - the function could be infallible,
+    /// - the function could panic or deadlock (see below),
+    /// - retrying the function in a loop might never succeed.
+    ///
+    /// However, if the container implements [`FragileMutContainer<T>`], then implementors should
+    /// usually make `try_get_mut` infallible as well, unless there is some useful reason to not
+    /// do so.
+    ///
+    /// # Fragility: Potential Panics or Deadlocks
+    ///
+    /// Unless this [`FragileTryMutContainer`] is also a [`TryMutContainer`], implementations are
+    /// permitted to panic or deadlock if this method is called from a thread which already has a
+    /// reference to the inner `T` of this container.
+    ///
+    /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
     fn try_get_mut(&mut self) -> Result<Self::RefMut<'_>, Self::RefMutError>;
 }
 
+/// An abstraction over some container which owns a `T` and can infallibly provide mutable or
+/// immutable references to it, or attempt to be consumed to return the inner `T`
+/// (if `T` is [`Sized`]).
+///
+/// # Fragility: Potential Panics or Deadlocks
+///
+/// This container should be assumed to be [fragile], unless it is known to implement
+/// [`MutContainer<T>`].
+///
+/// # `None` values
+///
+/// Note that [`into_inner`] is still permitted to return `None`, even though [`get_ref`] and
+/// [`get_mut`] do not fail, and most implementors should make [`try_get_ref`] and [`try_get_mut`]
+/// infallible as well. A container should clearly document when [`into_inner`] returns `None`.
+///
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`get_ref`]: FragileContainer::get_ref
+/// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
+/// [`get_mut`]: FragileMutContainer::get_mut
+/// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileMutContainer<T: ?Sized>: FragileTryMutContainer<T> + FragileContainer<T> {
+    /// Mutably borrow the inner `T`.
+    ///
+    /// # Fragility: Potential Panics or Deadlocks
+    ///
+    /// Unless this [`FragileMutContainer`] is also a [`MutContainer`], implementations are
+    /// permitted to panic or deadlock if this method is called from a thread which already has a
+    /// reference to the inner `T` of this container.
+    ///
+    /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
     #[must_use]
     fn get_mut(&mut self) -> Self::RefMut<'_>;
 }
 
+/// An abstraction over some container which owns a `T` and can provide mutable or immutable
+/// references to it, or be consumed to return the inner `T` (if `T` is [`Sized`]).
+///
+/// # Errors
+///
+/// The [`into_inner`], [`try_get_ref`], and [`try_get_mut`] methods may be able to fail, depending
+/// on the container; a container should clearly document the circumstances in which a `None` or
+/// `Err` variant may be returned.
+///
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
 pub trait TryMutContainer<T: ?Sized>: FragileTryMutContainer<T> + TryContainer<T> {}
 
+/// An abstraction over some container which owns a `T` and can infallibly provide mutable or
+/// immutable references to it, or attempt to be consumed to return the inner `T`
+/// (if `T` is [`Sized`]).
+///
+/// # `None` values
+///
+/// Note that [`into_inner`] is still permitted to return `None`, even though [`get_ref`] and
+/// [`get_mut`] do not fail, and most implementors should make [`try_get_ref`] and [`try_get_mut`]
+/// infallible as well. A container should clearly document when [`into_inner`] returns `None`.
+///
+/// [`into_inner`]: FragileTryContainer::into_inner
+/// [`try_get_ref`]: FragileTryContainer::try_get_ref
+/// [`get_ref`]: FragileContainer::get_ref
+/// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
+/// [`get_mut`]: FragileMutContainer::get_mut
 pub trait MutContainer<T: ?Sized>: FragileMutContainer<T> + TryMutContainer<T> + Container<T> {}
+
+// ================================================================
+//  The two `*Base*Container` traits intended as aliases
+// ================================================================
+
+/// The trait for containers which places the fewest constraints on implementations.
+///
+/// A user-made trait alias for [`FragileTryContainer`].
+pub trait BaseContainer<T: ?Sized>: FragileTryContainer<T> {}
+
+impl<T: ?Sized, C: ?Sized + FragileTryContainer<T>> BaseContainer<T> for C {}
+
+/// The trait for mutable containers which places the fewest constraints on implementations.
+///
+/// A user-made trait alias for [`FragileTryMutContainer`].
+pub trait BaseMutContainer<T: ?Sized>: FragileTryMutContainer<T> {}
+
+impl<T: ?Sized, C: ?Sized + FragileTryMutContainer<T>> BaseMutContainer<T> for C {}

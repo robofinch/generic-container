@@ -213,6 +213,9 @@ impl<T: Default> Default for ThreadCheckedMutex<T> {
 ///
 /// This structure can be created via the [`lock`] and [`try_lock`] methods of
 /// [`ThreadCheckedMutex`].
+///
+/// [`lock`]: ThreadCheckedMutex::lock
+/// [`try_lock`]: ThreadCheckedMutex::try_lock
 #[must_use = "if unused the ThreadCheckedMutex will immediately unlock"]
 #[clippy::has_significant_drop]
 #[derive(Debug)]

@@ -20,13 +20,16 @@ See the README of each crate for more details.
 
 ## Testing and Build Dependencies
 
-Currently, there are no strictly necesary dependencies that aren't part of normal Rust toolchains.
-However, to use the `Justfile`, both `just` and `cargo-hack` are necessary.
+Currently, there are no strictly necesary dependencies that aren't part of normal Rust toolchains,
+though Rust 1.87 or above is needed to build. To use the `Justfile`, both `just` and `cargo-hack`
+are necessary.
 
 ### Testing / Linting
 
-Before pushing a commit, run `just clippy-all` and `just test-all --no-cache`, which run checks on
-supported combinations of features and several architectures.
+Before pushing a commit, run `just clippy-all --no-cache` and `just test-all --no-cache`, which run
+checks on supported combinations of features and several architectures. Initially,
+`just add-targets` may need to be run. Occasionally, `just find-possible-missing-commas` should be
+run and looked through.
 
 ## License
 

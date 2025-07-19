@@ -121,8 +121,9 @@ impl CargoCommand {
         let mut command = Command::new("cargo");
         command.env("RUSTFLAGS", self.rust_flags(channel));
         match channel {
-            Channel::Stable  => {},
-            Channel::Nightly => { command.arg("+nightly"); }
+            Channel::Stable     => {},
+            Channel::Nightly    => { command.arg("+nightly"); }
+            Channel::StableMSRV => { command.arg("+1.85"); }
         }
         match self {
             Self::Check  => command.args(["hack", "check", "--feature-powerset"]),
@@ -135,7 +136,7 @@ impl CargoCommand {
 
     pub const fn rust_flags(self, channel: Channel) -> &'static str {
         match (self, channel) {
-            (_, Channel::Stable) => "",
+            (_, Channel::Stable | Channel::StableMSRV) => "",
             (Self::Check | Self::Test, Channel::Nightly) => "-Zpolonius",
             (Self::Clippy, Channel::Nightly) => "\
                 -Zpolonius \

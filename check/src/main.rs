@@ -8,7 +8,8 @@
 //!
 //! - Possible commands:
 //!   `check`, `clippy`, `test`. Note that `clippy` runs a superset of the checks that `check` does.
-//! - Possible channels: `stable`, `nightly`. (`beta` is not supported.)
+//! - Possible channels: `stable`, `nightly`, `msrv`. (`beta` is not supported.) `msrv` refers to
+//!   the stable channel of the minimum-supported Rust version.
 //! - Possible targets:
 //!   `native` (the platform the compiler is run on),
 //!   `apple` or `apple-silicon`,

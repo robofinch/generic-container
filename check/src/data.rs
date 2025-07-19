@@ -7,11 +7,12 @@ use anyhow::anyhow;
 pub enum Channel {
     Stable,
     Nightly,
+    StableMSRV,
 }
 
 impl Channel {
     pub const fn all_channels() -> &'static [Self] {
-        &[Self::Stable, Self::Nightly]
+        &[Self::Stable, Self::Nightly, Self::StableMSRV]
     }
 
     pub const fn default_channels() -> &'static [Self] {
@@ -22,6 +23,7 @@ impl Channel {
         Ok(match channel {
             "stable"  => Self::Stable,
             "nightly" => Self::Nightly,
+            "msrv"    => Self::StableMSRV,
             _ => return Err(anyhow!("Unknown channel name: {channel}")),
         })
     }

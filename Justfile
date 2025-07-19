@@ -12,6 +12,10 @@ add-targets:
     rustup target add --toolchain nightly x86_64-unknown-linux-gnu
     rustup target add --toolchain nightly x86_64-pc-windows-msvc
     rustup target add --toolchain nightly wasm32-unknown-unknown
+    rustup target add --toolchain 1.85 aarch64-apple-darwin
+    rustup target add --toolchain 1.85 x86_64-unknown-linux-gnu
+    rustup target add --toolchain 1.85 x86_64-pc-windows-msvc
+    rustup target add --toolchain 1.85 wasm32-unknown-unknown
 
 # ================================================================
 #   Example `.vscode/settings.json` for `rust-analyzer`:

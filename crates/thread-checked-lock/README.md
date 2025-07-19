@@ -57,13 +57,13 @@ Rust 1.85, the earliest version of the 2024 edition, is supported.
 
 Licensed under either of
 
- * Apache License, Version 2.0 ([LICENSE-APACHE][])
- * MIT license ([LICENSE-MIT][])
+ * Apache License, Version 2.0 ([LICENSE-APACHE])
+ * MIT license ([LICENSE-MIT])
 
 at your option.
 
-[LICENSE-APACHE]: ../LICENSE-APACHE
-[LICENSE-MIT]: ../LICENSE-MIT
+[LICENSE-APACHE]: ../../LICENSE-APACHE
+[LICENSE-MIT]: ../../LICENSE-MIT
 
 [`generic-container`]: https://crates.io/crates/generic-container
 

@@ -79,7 +79,7 @@ mod tests {
     use super::*;
 
 
-    fn first_id() -> MutexID {
+    const fn first_id() -> MutexID {
         #[expect(clippy::unwrap_used, reason = "1 is nonzero")]
         MutexID(NonZeroU64::new(1).unwrap())
     }

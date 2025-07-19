@@ -6,12 +6,12 @@ use crate::container_traits::{
 };
 
 
-impl<T> FragileTryContainer<T> for Box<T> {
+impl<T: ?Sized> FragileTryContainer<T> for Box<T> {
     type Ref<'a>  = &'a T where T: 'a;
     type RefError = Infallible;
 
     #[inline]
-    fn new_container(t: T) -> Self {
+    fn new_container(t: T) -> Self where T: Sized {
         Self::new(t)
     }
 
@@ -26,18 +26,18 @@ impl<T> FragileTryContainer<T> for Box<T> {
     }
 }
 
-impl<T> TryContainer<T> for Box<T> {}
+impl<T: ?Sized> TryContainer<T> for Box<T> {}
 
-impl<T> FragileContainer<T> for Box<T> {
+impl<T: ?Sized> FragileContainer<T> for Box<T> {
     #[inline]
     fn get_ref(&self) -> Self::Ref<'_> {
         self
     }
 }
 
-impl<T> Container<T> for Box<T> {}
+impl<T: ?Sized> Container<T> for Box<T> {}
 
-impl<T> FragileTryMutContainer<T> for Box<T> {
+impl<T: ?Sized> FragileTryMutContainer<T> for Box<T> {
     type RefMut<'a>  = &'a mut T where T: 'a;
     type RefMutError = Infallible;
 
@@ -47,13 +47,13 @@ impl<T> FragileTryMutContainer<T> for Box<T> {
     }
 }
 
-impl<T> TryMutContainer<T> for Box<T> {}
+impl<T: ?Sized> TryMutContainer<T> for Box<T> {}
 
-impl<T> FragileMutContainer<T> for Box<T> {
+impl<T: ?Sized> FragileMutContainer<T> for Box<T> {
     #[inline]
     fn get_mut(&mut self) -> Self::RefMut<'_> {
         self
     }
 }
 
-impl<T> MutContainer<T> for Box<T> {}
+impl<T: ?Sized> MutContainer<T> for Box<T> {}

@@ -4,15 +4,15 @@ use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::container_traits::{
     FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,
 };
-use super::UnwrapPoisonResult as _;
+use super::HandlePoisonedResult as _;
 
 
-impl<T> FragileTryContainer<T> for Arc<RwLock<T>> {
+impl<T: ?Sized> FragileTryContainer<T> for Arc<RwLock<T>> {
     type Ref<'a>  = RwLockReadGuard<'a, T> where T: 'a;
     type RefError = Infallible;
 
     #[inline]
-    fn new_container(t: T) -> Self {
+    fn new_container(t: T) -> Self where T: Sized {
         Self::new(RwLock::new(t))
     }
 
@@ -20,7 +20,7 @@ impl<T> FragileTryContainer<T> for Arc<RwLock<T>> {
     fn into_inner(self) -> Option<T> where T: Sized {
         Self::into_inner(self)
             .map(RwLock::into_inner)
-            .map(Result::panic_if_poisoned)
+            .map(Result::ignore_poisoned)
     }
 
     #[inline]
@@ -29,14 +29,14 @@ impl<T> FragileTryContainer<T> for Arc<RwLock<T>> {
     }
 }
 
-impl<T> FragileContainer<T> for Arc<RwLock<T>> {
+impl<T: ?Sized> FragileContainer<T> for Arc<RwLock<T>> {
     #[inline]
     fn get_ref(&self) -> Self::Ref<'_> {
         self.read().panic_if_poisoned()
     }
 }
 
-impl<T> FragileTryMutContainer<T> for Arc<RwLock<T>> {
+impl<T: ?Sized> FragileTryMutContainer<T> for Arc<RwLock<T>> {
     type RefMut<'a>  = RwLockWriteGuard<'a, T> where T: 'a;
     type RefMutError = Infallible;
 
@@ -46,7 +46,7 @@ impl<T> FragileTryMutContainer<T> for Arc<RwLock<T>> {
     }
 }
 
-impl<T> FragileMutContainer<T> for Arc<RwLock<T>> {
+impl<T: ?Sized> FragileMutContainer<T> for Arc<RwLock<T>> {
     #[inline]
     fn get_mut(&mut self) -> Self::RefMut<'_> {
         self.write().panic_if_poisoned()

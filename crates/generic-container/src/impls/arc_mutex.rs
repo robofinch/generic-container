@@ -4,15 +4,15 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use crate::container_traits::{
     FragileContainer, FragileMutContainer, FragileTryContainer, FragileTryMutContainer,
 };
-use super::UnwrapPoisonResult as _;
+use super::HandlePoisonedResult as _;
 
 
-impl<T> FragileTryContainer<T> for Arc<Mutex<T>> {
+impl<T: ?Sized> FragileTryContainer<T> for Arc<Mutex<T>> {
     type Ref<'a>  = MutexGuard<'a, T> where T: 'a;
     type RefError = Infallible;
 
     #[inline]
-    fn new_container(t: T) -> Self {
+    fn new_container(t: T) -> Self where T: Sized {
         Self::new(Mutex::new(t))
     }
 
@@ -20,7 +20,7 @@ impl<T> FragileTryContainer<T> for Arc<Mutex<T>> {
     fn into_inner(self) -> Option<T> where T: Sized {
         Self::into_inner(self)
             .map(Mutex::into_inner)
-            .map(Result::panic_if_poisoned)
+            .map(Result::ignore_poisoned)
     }
 
     #[inline]
@@ -29,14 +29,14 @@ impl<T> FragileTryContainer<T> for Arc<Mutex<T>> {
     }
 }
 
-impl<T> FragileContainer<T> for Arc<Mutex<T>> {
+impl<T: ?Sized> FragileContainer<T> for Arc<Mutex<T>> {
     #[inline]
     fn get_ref(&self) -> Self::Ref<'_> {
         self.lock().panic_if_poisoned()
     }
 }
 
-impl<T> FragileTryMutContainer<T> for Arc<Mutex<T>> {
+impl<T: ?Sized> FragileTryMutContainer<T> for Arc<Mutex<T>> {
     type RefMut<'a>  = MutexGuard<'a, T> where T: 'a;
     type RefMutError = Infallible;
 
@@ -46,7 +46,7 @@ impl<T> FragileTryMutContainer<T> for Arc<Mutex<T>> {
     }
 }
 
-impl<T> FragileMutContainer<T> for Arc<Mutex<T>> {
+impl<T: ?Sized> FragileMutContainer<T> for Arc<Mutex<T>> {
     #[inline]
     fn get_mut(&mut self) -> Self::RefMut<'_> {
         self.lock().panic_if_poisoned()

@@ -27,6 +27,7 @@ name = "generic-container"
 version = "0.1.0"
 dependencies = [
  "dupe",
+ "thread-checked-lock",
 ]
 
 [[package]]

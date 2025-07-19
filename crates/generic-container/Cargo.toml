@@ -17,7 +17,12 @@ workspace = true
 
 
 [dependencies]
-dupe = { workspace = true, optional = true }
+# TODO: document that enabling the "thread-checked-lock" feature implements container traits for
+# `Arc<ThreadCheckedMutex<T>>`.
+thread-checked-lock = { workspace = true, optional = true }
 
 [dev-dependencies]
 dupe.workspace = true
+
+[features]
+default = ["thread-checked-lock"]

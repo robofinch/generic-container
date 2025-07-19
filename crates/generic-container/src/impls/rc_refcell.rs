@@ -6,12 +6,12 @@ use crate::container_traits::{
 };
 
 
-impl<T> FragileTryContainer<T> for Rc<RefCell<T>> {
+impl<T: ?Sized> FragileTryContainer<T> for Rc<RefCell<T>> {
     type Ref<'a>  = Ref<'a, T> where T: 'a;
     type RefError = Infallible;
 
     #[inline]
-    fn new_container(t: T) -> Self {
+    fn new_container(t: T) -> Self where T: Sized {
         Self::new(RefCell::new(t))
     }
 
@@ -26,14 +26,14 @@ impl<T> FragileTryContainer<T> for Rc<RefCell<T>> {
     }
 }
 
-impl<T> FragileContainer<T> for Rc<RefCell<T>> {
+impl<T: ?Sized> FragileContainer<T> for Rc<RefCell<T>> {
     #[inline]
     fn get_ref(&self) -> Self::Ref<'_> {
         self.borrow()
     }
 }
 
-impl<T> FragileTryMutContainer<T> for Rc<RefCell<T>> {
+impl<T: ?Sized> FragileTryMutContainer<T> for Rc<RefCell<T>> {
     type RefMut<'a>  = RefMut<'a, T> where T: 'a;
     type RefMutError = Infallible;
 
@@ -43,7 +43,7 @@ impl<T> FragileTryMutContainer<T> for Rc<RefCell<T>> {
     }
 }
 
-impl<T> FragileMutContainer<T> for Rc<RefCell<T>> {
+impl<T: ?Sized> FragileMutContainer<T> for Rc<RefCell<T>> {
     #[inline]
     fn get_mut(&mut self) -> Self::RefMut<'_> {
         self.borrow_mut()

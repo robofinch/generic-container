@@ -70,9 +70,11 @@ check-executable := "generic-container-check"
     Parameters to command-line arguments:
 
     - Possible commands:
-        `check`, `clippy`.
+        `check`, `clippy`, `test`.
         Note that `clippy` runs a superset of the checks that `check` does.
-    - Possible channels: `stable`, `nightly`. (`beta` is not supported.)
+    - Possible channels:
+        `stable`, `nightly`, `msrv`. (`beta` is not supported.)
+        `msrv` refers to the `stable` channel of the minimum-supported Rust version's compiler.
     - Possible targets:
         `native` (the platform the compiler is run on),
         `apple` or `apple-silicon`,
@@ -117,7 +119,7 @@ check-util *args:
 #   Shorthands for using that util
 # ================================================================
 
-all-channels := 'stable nightly'
+all-channels := 'stable nightly msrv'
 default-targets  := 'native wasm'
 
 [group("on-save")]

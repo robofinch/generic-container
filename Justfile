@@ -111,7 +111,7 @@ check-util *args:
     #!/usr/bin/env bash
     set -euxo pipefail
     cd {{check-dir}}
-    cargo build --release
+    cargo +stable build --release
     cd {{justfile_directory()}}
     {{check-dir}}/target/release/{{check-executable}} {{args}}
 

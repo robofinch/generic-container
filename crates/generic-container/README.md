@@ -232,6 +232,7 @@ shenanigans that confuse the trait solver.
 - `alloc`: enables container implementations based on `Box`, `Rc`, `Arc`, and `RefCell`, including
   `CheckedRcRefCell`. Without `alloc`, the container traits and `GenericContainer` are still
   available, and `T` is a container for itself. Enabled by default.
+- `kinds`: provides several container kinds and container kind traits (see above).
 - `thread-checked-lock`: if enabled, [`TryMutContainer<T>`] is implemented for
   <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>. Implies the `std` feature.
 - `serde`: derives `Serialize` and `Deserialize` for `GenericContainer` and, if `alloc` is enabled,

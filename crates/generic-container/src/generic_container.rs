@@ -9,6 +9,9 @@ use core::{
     hash::{Hash, Hasher},
 };
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 
 // Default, Debug, Copy, Clone, PartialEq<Self>, Eq, PartialOrd<Self>, Ord, and Hash are all
 // manually implemented and defer to the container.
@@ -62,6 +65,7 @@ use core::{
 ///     }
 /// }
 /// ```
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(transparent)]
 pub struct GenericContainer<T: ?Sized, C: ?Sized> {
     /// Distinguish which type is supposed to be contained.

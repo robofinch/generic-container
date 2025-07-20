@@ -226,13 +226,15 @@ as needed.
 
 # Features
 
-- `thread-checked-lock`: if enabled, [`TryMutContainer<T>`] is implemented for
-  <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>. Implies the `std` feature.
 - `std`: enables support for `Arc<Mutex<T>>` and `Arc<RwLock<T>>`. Enabled by default. Implies
   the `alloc` feature.
-- `alloc`: enables container implementations based on `Box`, `Rc`, `Arc`, and `RefCell`. Without
-  `alloc`, the container traits are still available, and `T` is a container for itself. Enabled
-  by default.
+- `alloc`: enables container implementations based on `Box`, `Rc`, `Arc`, and `RefCell`, including
+  `CheckedRcRefCell`. Without `alloc`, the container traits and `GenericContainer` are still
+  available, and `T` is a container for itself. Enabled by default.
+- `thread-checked-lock`: if enabled, [`TryMutContainer<T>`] is implemented for
+  <code>[Arc]<[ThreadCheckedMutex]\<T\>></code>. Implies the `std` feature.
+- `serde`: derives `Serialize` and `Deserialize` for `GenericContainer` and, if `alloc` is enabled,
+  `CheckedRcRefCell`.
 
 # MSRV
 
@@ -250,11 +252,9 @@ at your option.
 
 [^blanket-container-t]: To satisfy the trait solver and avoid conflicting trait implementations,
   a [`GenericContainer<T, C>`] struct is provided. It is not necessary for blanket
-  implementations over containers holding `dyn Trait`, but should be used for blanket
-  implementations of `Trait` for containers holding an arbitrary `T: Trait` or
-  `T: ?Sized + Trait`. (Note that `dyn Trait: !Sized + Trait`, so an implementation for
-  `dyn Trait` does not conflict with a blanket implementation for `T: Trait`, but a blanket
-  implementation for `T: ?Sized + Trait` includes the `dyn Trait` case.)
+  implementations of `YourTrait` for any container holding `dyn YourTrait`, but should be used for
+  blanket implementations for `GenericContainer<T, C>` for any container `C` holding a
+  `T: ?Sized + YourTrait`, or similar.
 [^container-dyn-trait]: `Container<dyn Trait>` might not be the best choice;
   [`FragileContainer`] is preferred if possible. Just as functions are encouraged to take
   [`FnOnce`] or [`FnMut`] callbacks rather than [`Fn`] (if possible), it would be best to accept

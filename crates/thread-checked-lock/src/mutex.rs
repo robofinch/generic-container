@@ -4,6 +4,9 @@ use std::{
     sync::{Mutex, MutexGuard, PoisonError, TryLockError as StdTryLockError},
 };
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::{locked_mutexes, mutex_id};
 use crate::mutex_id::MutexID;
 use crate::error::{AccessResult, LockError, LockResult, TryLockError, TryLockResult};
@@ -16,6 +19,7 @@ use crate::error::{AccessResult, LockError, LockResult, TryLockError, TryLockRes
 /// [`Mutex::try_lock`] checks if *any* thread holds the lock (and cannot distinguish whether the
 /// current thread holds the lock). As such, attempting to lock the same `Mutex` twice on a thread
 /// is potentially a fatal error; `ThreadCheckedMutex` allows for recovery.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct ThreadCheckedMutex<T: ?Sized> {
     mutex_id: MutexID,

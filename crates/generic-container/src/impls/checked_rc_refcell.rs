@@ -1,6 +1,9 @@
 use alloc::rc::Rc;
 use core::cell::{BorrowError, BorrowMutError, Ref, RefCell, RefMut};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::container_traits::{
     FragileTryContainer, FragileTryMutContainer, TryContainer, TryMutContainer,
 };
@@ -16,7 +19,8 @@ use crate::container_traits::{
 /// errors being returned instead of being fatal.
 ///
 /// [fragile]: crate#fragility-potential-panics-or-deadlocks
-#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CheckedRcRefCell<T: ?Sized>(pub Rc<RefCell<T>>);
 
 impl<T: ?Sized> FragileTryContainer<T> for CheckedRcRefCell<T> {

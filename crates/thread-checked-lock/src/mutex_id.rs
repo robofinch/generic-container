@@ -9,9 +9,13 @@ use std::sync::atomic::{AtomicU64, Ordering};
 #[cfg(not(target_has_atomic = "64"))]
 use std::sync::Mutex;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 
 /// A unique `MutexId` should be assigned to each `ThreadCheckedMutex` so that each thread
 /// can track which mutexes they have acquired.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct MutexID(NonZeroU64);
 

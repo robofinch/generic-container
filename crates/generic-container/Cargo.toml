@@ -18,12 +18,16 @@ workspace = true
 
 [dependencies]
 thread-checked-lock = { workspace = true, optional = true }
+serde = { workspace = true, default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 dupe.workspace = true
 
 [features]
-default = ["std"]
-thread-checked-lock = ["dep:thread-checked-lock", "std"]
+default = ["std", "serde"]
+
 std = ["alloc"]
-alloc = []
+alloc = ["serde?/alloc", "serde?/rc"]
+
+thread-checked-lock = ["dep:thread-checked-lock", "std"]
+serde = ["dep:serde"]

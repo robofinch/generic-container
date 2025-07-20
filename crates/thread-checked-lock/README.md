@@ -50,6 +50,9 @@ drop(guard);
 let _guard = mutex.lock().unwrap();
 ```
 
+## Features
+- `serde`: derives `Serialize` and `Deserialize` for `ThreadCheckedMutex`.
+
 ## Minimum supported Rust Version (MSRV)
 Rust 1.85, the earliest version of the 2024 edition, is supported.
 

@@ -6,7 +6,7 @@ readme       = "README.md"
 keywords     = ["abstraction", "generic", "box", "rc", "arc"]
 categories   = ["memory-management", "concurrency", "rust-patterns", "no-std", "no-std::no-alloc"]
 include      = ["Cargo.toml", "**/*.rs", "../../LICENSE-APACHE", "../../LICENSE-MIT"]
-version      .workspace = true
+version      = "0.1.1"
 edition      .workspace = true
 rust-version .workspace = true
 repository   .workspace = true
@@ -23,8 +23,11 @@ serde = { workspace = true, default-features = false, features = ["derive"], opt
 [dev-dependencies]
 dupe.workspace = true
 
+[package.metadata.docs.rs]
+features = ["std", "thread-checked-lock"]
+
 [features]
-default = ["std", "serde"]
+default = ["std"]
 
 std = ["alloc"]
 alloc = ["serde?/alloc", "serde?/rc"]

@@ -5,7 +5,7 @@ description  = 'Abstract over "containers" that hold a T, such as a T itself, Bo
 readme       = "README.md"
 keywords     = ["abstraction", "generic", "box", "rc", "arc"]
 categories   = ["memory-management", "concurrency", "rust-patterns", "no-std", "no-std::no-alloc"]
-# TODO: explicitly define `include`
+include      = ["Cargo.toml", "**/*.rs", "../../LICENSE-APACHE", "../../LICENSE-MIT"]
 version      .workspace = true
 edition      .workspace = true
 rust-version .workspace = true

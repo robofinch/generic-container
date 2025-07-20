@@ -2,11 +2,10 @@
 name         = "thread-checked-lock"
 authors      = ["Finley Huggins"]
 description  = "Gracefully error when a thread attempts to acquire the same lock twice"
-# TODO: make a crate-specific README
-readme       = "../../README.md"
+readme       = "README.md"
 keywords     = ["mutex", "checked", "deadlock"]
 categories   = ["concurrency", "memory-management"]
-# TODO: explicitly define `include`
+include      = ["Cargo.toml", "**/*.rs", "../../LICENSE-APACHE", "../../LICENSE-MIT"]
 version      .workspace = true
 edition      .workspace = true
 rust-version .workspace = true

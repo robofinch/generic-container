@@ -1,5 +1,3 @@
-# TODO: (build-all) (bench-all)
-
 list:
     just --list
 

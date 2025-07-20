@@ -120,11 +120,12 @@ impl CargoCommand {
     pub fn base_command(self, channel: Channel) -> Command {
         let mut command = Command::new("cargo");
         command.env("RUSTFLAGS", self.rust_flags(channel));
-        match channel {
-            Channel::Stable     => {},
-            Channel::Nightly    => { command.arg("+nightly"); }
-            Channel::StableMSRV => { command.arg("+1.85"); }
-        }
+        let channel_arg = match channel {
+            Channel::Stable     => "+stable",
+            Channel::Nightly    => "+nightly",
+            Channel::StableMSRV => "+1.85",
+        };
+        command.arg(channel_arg);
         match self {
             Self::Check  => command.args(["hack", "check", "--feature-powerset"]),
             Self::Clippy => command.args(["hack", "clippy", "--feature-powerset"]),

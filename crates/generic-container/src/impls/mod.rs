@@ -3,40 +3,40 @@
 #![warn(clippy::missing_inline_in_public_items)]
 
 mod t_itself;
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 mod box_container;
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 mod rc;
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 mod arc;
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 mod rc_refcell;
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 mod checked_rc_refcell;
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doc))]
 mod arc_rwlock;
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doc))]
 mod arc_mutex;
 
-#[cfg(all(feature = "thread-checked-lock", feature = "std"))]
+#[cfg(feature = "thread-checked-lock")]
 mod arc_checked_mutex;
 
 
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 pub use self::checked_rc_refcell::CheckedRcRefCell;
-#[cfg(all(feature = "thread-checked-lock", feature = "std"))]
+#[cfg(feature = "thread-checked-lock")]
 pub use self::arc_checked_mutex::ErasedLockError;
 
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doc))]
 use std::sync::PoisonError;
 
 
-#[cfg(feature = "std")]
 /// Trait for handling `Result<T, PoisonError<T>>`, as bug-free code should never allow a poison
 /// error to occur anyway. In most cases, we can panic if a poison error is encountered, but
 /// in a few circumstances, we ignore the poison.
+#[cfg(any(feature = "std", doc))]
 trait HandlePoisonedResult<T> {
     /// Panic if a poison error is received, as bug-free code should never allow a poison error
     /// to occur anyway.
@@ -49,7 +49,7 @@ trait HandlePoisonedResult<T> {
     fn ignore_poisoned(self) -> T;
 }
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doc))]
 impl<T> HandlePoisonedResult<T> for Result<T, PoisonError<T>> {
     #[inline]
     fn panic_if_poisoned(self) -> T {

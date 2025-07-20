@@ -26,14 +26,16 @@
 #![cfg_attr(doc, doc = include_str!("../README.md"))]
 
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 #![no_std]
 #![warn(clippy::std_instead_of_alloc)]
 #![warn(clippy::std_instead_of_core)]
 
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
 extern crate alloc;
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doc))]
 extern crate std;
 
 
@@ -57,7 +59,10 @@ pub use self::container_traits::{
     BaseContainer, BaseMutContainer,
 };
 
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", doc))]
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 pub use self::impls::CheckedRcRefCell;
+
 #[cfg(feature = "thread-checked-lock")]
+#[cfg_attr(docsrs, doc(cfg(feature = "thread-checked-lock")))]
 pub use self::impls::ErasedLockError;

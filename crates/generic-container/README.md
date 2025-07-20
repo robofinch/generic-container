@@ -175,7 +175,7 @@ This crate provides the following container implementations:
   - `CheckedRcRefCell<T>`
   - `Arc<ThreadCheckedMutex<T>>` (only if the `thread-checked-lock` feature is enabled)
 
-## Container Kind traits
+## Container Kind Traits
 
 Currently, Rust doesn't allow bounds like
 `where C: for<T: Send> Container<T> + Clone + Send + Sync`.
@@ -208,21 +208,22 @@ pub trait NeededContainerStuff {
 }
 ```
 
-Such a trait could be referred to as a "container kind trait" (with implementations being
-"container kinds", just as implementations of the container traits are "containers").
-Relevant characteristics for a container kind's container include the eight container traits,
-`Send + Sync` bounds (possibly only when `T` is `Send + Sync`, or just `Send`), [`Dupe`],
-whether the GAT allows `T` to be unsized, and `Debug` bounds.
+Such a trait is called a "container kind trait" (with implementations being "container kinds", just
+as implementations of the container traits are "containers"). Relevant characteristics for a
+container kind's container include the eight container traits, `Send + Sync` bounds (possibly only
+when `T` is `Send + Sync`, or just `Send`), [`Dupe`], whether the GAT allows `T` to be unsized, and
+`Debug` bounds.
 
-Unfortunately, creating one container kind trait for each combination of bounds requires
-exponentially many traits, and creating simple container kind traits that can be combined into
+Not every conceivably-useful container kind trait is provided, as there would be exponentially-many
+such traits. Note also that creating simple container kind traits that can be combined into
 more complicated bounds does *work*, but not well. A container kind should set the GAT of each
 container kind trait it implements to the same container type; this *can* be asserted or
 required with Rust's type system, but the trait solver doesn't understand it very well. Such
 container kind traits would likely not be pleasant to use.
 
-As such, container kind traits are not provided here; you should create traits with GATs
-as needed.
+When the `kinds` feature is enabled, container kinds and container kind traits for common sorts of
+containers are provided. They do not use [`Dupe`] bounds, and do not mess with type-equality
+shenanigans that confuse the trait solver.
 
 # Features
 

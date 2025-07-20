@@ -42,6 +42,9 @@ extern crate std;
 mod container_traits;
 mod impls;
 mod generic_container;
+#[cfg(any(feature = "kinds", doc))]
+#[cfg_attr(docsrs, doc(cfg(feature = "kinds")))]
+pub mod kinds;
 
 
 // `dupe` is only used in doctests, which still triggers the `unused_crate_dependencies` lint.

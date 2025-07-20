@@ -12,6 +12,56 @@ use core::{
 
 // Default, Debug, Copy, Clone, PartialEq<Self>, Eq, PartialOrd<Self>, Ord, and Hash are all
 // manually implemented and defer to the container.
+/// A wrapper type intended for use in blanket implementations of `YourTrait` ranging over
+/// containers `C` that hold a `T: YourTrait`.
+///
+/// This is necessary to avoid conflicting trait implementations.
+///
+/// ## Examples
+/// Not needed when the `T: YourTrait` is fixed:
+/// ```
+/// use generic_container::Container;
+///
+/// trait Trait {
+///     fn do_thing(&self);
+/// }
+///
+/// impl<C: ?Sized + Container<dyn Trait>> Trait for C {
+///     fn do_thing(&self) {
+///         self.get_ref().do_thing();
+///     }
+/// }
+/// ```
+///
+/// But when the inner type varies:
+/// ```
+/// use generic_container::{Container, GenericContainer};
+///
+/// trait Trait {
+///     fn do_thing(&self);
+/// }
+///
+/// impl<T: ?Sized + Trait, C: ?Sized + Container<T>> Trait for GenericContainer<T, C> {
+///     fn do_thing(&self) {
+///         self.container.get_ref().do_thing();
+///     }
+/// }
+/// ```
+///
+/// Without a wrapper type, it does not compile:
+/// ```compile_fail
+/// use generic_container::{Container, GenericContainer};
+///
+/// trait Trait {
+///     fn do_thing(&self);
+/// }
+///
+/// impl<T: ?Sized + Trait, C: ?Sized + Container<T>> Trait for C {
+///     fn do_thing(&self) {
+///         self.get_ref().do_thing();
+///     }
+/// }
+/// ```
 #[repr(transparent)]
 pub struct GenericContainer<T: ?Sized, C: ?Sized> {
     /// Distinguish which type is supposed to be contained.
@@ -23,6 +73,8 @@ pub struct GenericContainer<T: ?Sized, C: ?Sized> {
 }
 
 impl<T: ?Sized, C> GenericContainer<T, C> {
+    /// Create a new `GenericContainer` struct wrapping the provided value, treated as a container
+    /// around a specific type.
     #[inline]
     #[must_use]
     pub const fn new(container: C) -> Self {
@@ -45,7 +97,7 @@ where
     T: ?Sized,
     C: ?Sized + Debug,
 {
-    #[allow(clippy::missing_inline_in_public_items, reason = "nontrivial and unlikely to be hot")]
+    #[allow(clippy::missing_inline_in_public_items, reason = "not trivial or likely to be hot")]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("GenericContainer")
             .field("_marker", &self._marker)

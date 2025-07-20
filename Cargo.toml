@@ -23,7 +23,7 @@ serde               = { version = "1.0.219", default-features = false }
 
 
 # Out of the lints that do anything (non-deprecated clippy lints, non-migration rust lints),
-# AFAICT there are 35 left at the "allow" level :)
+# AFAICT there are 34 left at the "allow" level :)
 [workspace.lints.rust]
 # Note: I basically went through every allow-by-default lint, and am linting against
 # almost everything, except lints just related to migrating to Edition 2018, 2021, or 2024;
@@ -70,9 +70,7 @@ unused_lifetimes                     = "warn"
 unused_macro_rules                   = "warn"
 unused_qualifications                = "warn"
 variant_size_differences             = "warn"
-
-# TODO: lint against missing documentation
-# missing_docs = "warn"
+missing_docs                         = "warn"
 
 future_incompatible                  = { level = "warn", priority = -1 }
 keyword-idents                       = { level = "warn", priority = -1 }
@@ -112,12 +110,6 @@ pedantic    = { level = "warn", priority = -1 }
 restriction = { level = "warn", priority = -1 }
 nursery     = { level = "warn", priority = -1 }
 cargo       = { level = "warn", priority = -1 }
-
-
-# Warnings that should eventually be enabled
-missing_docs_in_private_items       = "allow"
-missing_errors_doc                  = "allow"
-todo                                = "allow"
 
 
 # Correctness exceptions: there are none.
@@ -170,6 +162,8 @@ exhaustive_structs                  = "allow"
 # Similar to map_unwrap_or and whatnot
 if_then_some_else_none              = "allow"
 implicit_return                     = "allow"
+# Reasonable, but onerous.
+missing_docs_in_private_items       = "allow"
 missing_trait_methods               = "allow"
 missing_inline_in_public_items      = "allow"
 mod_module_files                    = "allow"

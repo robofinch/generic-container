@@ -104,6 +104,9 @@ impl<T> LockError<T> {
     /// [`PoisonError::into_inner`]), and otherwise returns the error unchanged in an [`Err`].
     ///
     /// [Read more about poison.](HandlePoisonResult#about-poison)
+    ///
+    /// # Errors
+    /// If the provided error was not caused by poison, that error is returned.
     #[inline]
     pub fn ignore_poison(self) -> PoisonlessLockResult<T> {
         match self {
@@ -234,6 +237,10 @@ impl<T> TryLockError<T> {
     /// [`PoisonError::into_inner`]), and otherwise returns the error unchanged in an [`Err`].
     ///
     /// [Read more about poison.](HandlePoisonResult#about-poison)
+    ///
+    /// # Errors
+    ///
+    /// If the provided error was not caused by poison, that error is returned.
     #[inline]
     pub fn ignore_poison(self) -> PoisonlessTryLockResult<T> {
         match self {
@@ -380,6 +387,7 @@ impl<T> AccessError<T> {
     /// Since every [`AccessError`] is caused by poison, the returned result is always [`Ok`].
     ///
     /// [Read more about poison.](HandlePoisonResult#about-poison)
+    #[expect(clippy::missing_errors_doc, reason = "the function is infallible")]
     #[inline]
     pub fn ignore_poison(self) -> PoisonlessAccessResult<T> {
         Ok(self.poison.into_inner())

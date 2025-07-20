@@ -1,4 +1,3 @@
-use core::fmt::Debug;
 use core::ops::{Deref, DerefMut};
 
 
@@ -26,7 +25,22 @@ use core::ops::{Deref, DerefMut};
 /// [`try_get_ref`]: FragileTryContainer::try_get_ref
 /// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileTryContainer<T: ?Sized> {
+    /// An immutably borrowed value from the container.
+    ///
+    /// May have a nontrivial `Drop` implementatation, as with the [`Ref`] type corresponding
+    /// to [`RefCell`].
+    ///
+    /// [`Ref`]: std::cell::Ref
+    /// [`RefCell`]: std::cell::RefCell
     type Ref<'a>:  Deref<Target = T> where Self: 'a;
+    /// An error that might be returned by [`try_get_ref`]. This type should implement
+    /// [`std::error::Error`].
+    ///
+    /// The canonical error to use when [`try_get_ref`] can never return an error
+    /// is [`Infallible`].
+    ///
+    /// [`try_get_ref`]: FragileTryContainer::try_get_ref
+    /// [`Infallible`]: std::convert::Infallible
     type RefError;
 
     /// Create a new container that owns the provided `T`.
@@ -64,6 +78,10 @@ pub trait FragileTryContainer<T: ?Sized> {
     /// reference to the inner `T` of this container.
     ///
     /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
+    ///
+    /// # Errors
+    ///
+    /// Errors are implementation-defined, and should be documented by implementors.
     fn try_get_ref(&self) -> Result<Self::Ref<'_>, Self::RefError>;
 }
 
@@ -152,8 +170,23 @@ pub trait Container<T: ?Sized>: FragileContainer<T> + TryContainer<T> {}
 /// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
 /// [fragile]: crate#fragility-potential-panics-or-deadlocks
 pub trait FragileTryMutContainer<T: ?Sized>: FragileTryContainer<T> {
+    /// A mutably borrowed value from the container.
+    ///
+    /// May have a nontrivial `Drop` implementatation, as with the [`RefMut`] type corresponding
+    /// to [`RefCell`].
+    ///
+    /// [`RefMut`]: std::cell::RefMut
+    /// [`RefCell`]: std::cell::RefCell
     type RefMut<'a>:  DerefMut<Target = T> where Self: 'a;
-    type RefMutError: Debug;
+    /// An error that might be returned by [`try_get_mut`]. This type should implement
+    /// [`std::error::Error`].
+    ///
+    /// The canonical error to use when [`try_get_mut`] can never return an error
+    /// is [`Infallible`].
+    ///
+    /// [`try_get_mut`]: FragileTryMutContainer::try_get_mut
+    /// [`Infallible`]: std::convert::Infallible
+    type RefMutError;
 
     /// Attempt to mutably access the inner `T`.
     ///
@@ -174,6 +207,9 @@ pub trait FragileTryMutContainer<T: ?Sized>: FragileTryContainer<T> {
     /// reference to the inner `T` of this container.
     ///
     /// [Read more about fragility.](crate#fragility-potential-panics-or-deadlocks)
+    ///
+    /// # Errors
+    /// Errors are implementation-defined, and should be documented by implementors.
     fn try_get_mut(&mut self) -> Result<Self::RefMut<'_>, Self::RefMutError>;
 }
 

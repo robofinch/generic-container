@@ -20,8 +20,20 @@ use crate::container_traits::{
 ///
 /// [fragile]: crate#fragility-potential-panics-or-deadlocks
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CheckedRcRefCell<T: ?Sized>(pub Rc<RefCell<T>>);
+
+impl<T: ?Sized> Clone for CheckedRcRefCell<T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
+    }
+
+    #[inline]
+    fn clone_from(&mut self, source: &Self) {
+        self.0.clone_from(&source.0);
+    }
+}
 
 impl<T: ?Sized> FragileTryContainer<T> for CheckedRcRefCell<T> {
     type Ref<'a>  = Ref<'a, T> where T: 'a;
@@ -49,7 +61,7 @@ impl<T: ?Sized> FragileTryContainer<T> for CheckedRcRefCell<T> {
     }
 }
 
-impl<T: ?Sized> TryContainer<T> for Rc<RefCell<T>> {}
+impl<T: ?Sized> TryContainer<T> for CheckedRcRefCell<T> {}
 
 impl<T: ?Sized> FragileTryMutContainer<T> for CheckedRcRefCell<T> {
     type RefMut<'a>  = RefMut<'a, T> where T: 'a;
@@ -64,4 +76,4 @@ impl<T: ?Sized> FragileTryMutContainer<T> for CheckedRcRefCell<T> {
     }
 }
 
-impl<T: ?Sized> TryMutContainer<T> for Rc<RefCell<T>> {}
+impl<T: ?Sized> TryMutContainer<T> for CheckedRcRefCell<T> {}
